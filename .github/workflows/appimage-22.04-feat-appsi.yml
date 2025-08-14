@@ -48,6 +48,8 @@ jobs:
         git clone --recursive https://github.com/OpenSpace/OpenSpace "$openSpaceHome"
         cd "$openSpaceHome"
         git checkout "feature/applesilicon" --recurse-submodules
+        git submodule add https://github.com/fmtlib/fmt.git ext/ghoul/ext/fmt
+        git submodule update --init --recursive
         mkdir build
         cd build
         
