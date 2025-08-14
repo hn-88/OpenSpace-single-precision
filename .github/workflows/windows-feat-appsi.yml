@@ -59,15 +59,14 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
         cd "$env:openSpaceHome/build"
-        cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF $env:openSpaceHome
+        cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF $env:openSpaceHome
         # -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20
 
     - name: Build
       # Build your program with the given configuration
       run: |
         cd $env:openSpaceHome
-        cd build
-        make -j4
+        cmake --build ./build --config RelWithDebInfo
         # ./deploy.bat
         
  
