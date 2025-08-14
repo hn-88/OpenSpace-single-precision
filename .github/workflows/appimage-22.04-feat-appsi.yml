@@ -133,6 +133,6 @@ jobs:
         name: OpenSpace-AppImage
         # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
-        path: /home/runner/work/OpenSpace-AppImage/OpenSpace-AppImage/OpenSpace-*-x86_64.AppImage
+        path: OpenSpace-*64.AppImage
       
     
