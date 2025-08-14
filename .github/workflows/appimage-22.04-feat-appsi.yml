@@ -1,4 +1,4 @@
-name: appimage-22.04
+name: appimage-22.04-feat-appsi
 
 on: workflow_dispatch
 
@@ -58,9 +58,10 @@ jobs:
         sudo apt update
         sudo apt install glew-utils libpng-dev freeglut3-dev git libxrandr-dev libxinerama-dev xorg-dev libxcursor-dev libcurl4-openssl-dev libxi-dev libasound2-dev libgdal-dev libboost1.74-dev qt6-base-dev libmpv-dev libvulkan-dev
         sudo apt install software-properties-common
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-        sudo apt install gcc-13 g++-13
-        sudo apt-get install libasound2 libasound2-data libasound2-plugins
+        # sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        # sudo apt install g++-13 gcc-13
+        sudo apt install libfmt-dev
+        # sudo apt-get install libasound2 libasound2-data libasound2-plugins
 
     - name: Enable sccache
       uses: mozilla-actions/sccache-action@v0.0.9
@@ -71,7 +72,8 @@ jobs:
       run: |
         openSpaceHome="$HOME/source/OpenSpace"
         cd "$openSpaceHome/build"
-        cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20 -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
+        cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
+        # -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20
 
     - name: Build
       # Build your program with the given configuration
