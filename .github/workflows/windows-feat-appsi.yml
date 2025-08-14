@@ -10,7 +10,7 @@ env:
   OPENSPACE_VERSION: "feature-applesilicon"
   APPIMAGE_VERSION: "1"
   openSpaceHome: ${{ github.workspace }}/source/OpenSpace
-  QT_DIR: C:/QT
+  QT_DIR: C:/Qt/6.2.0/msvc2019_64
   
 jobs:
   build:
