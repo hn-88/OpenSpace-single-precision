@@ -7,11 +7,6 @@ env:
   # This yml is copied from https://github.com/hn-88/OCVWarp/blob/master/.github/workflows/cmake-nix.yml
   # and modified.
   BUILD_TYPE: Release
-  # As recommended here: https://github.com/marketplace/actions/sccache-action
-  SCCACHE_GHA_ENABLED: "true"
-  SCCACHE_CACHE_SIZE: 5G
-  CMAKE_C_COMPILER_LAUNCHER: sccache
-  CMAKE_CXX_COMPILER_LAUNCHER: sccache
   OPENSPACE_VERSION: "feature-applesilicon"
   APPIMAGE_VERSION: "1"
   
@@ -64,9 +59,7 @@ jobs:
         sudo apt install libfmt-dev
         # sudo apt-get install libasound2 libasound2-data libasound2-plugins
 
-    - name: Enable sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
-
+  
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -101,7 +94,8 @@ jobs:
         cp -r $HOME/source/OpenSpace/{config/,modules/,data/,scripts/,shaders,/documentation/,openspace.cfg} ./appdir/usr/
 
         # patch file created with diff -u openspace.cfg openspace.edited
-        patch ./appdir/usr/openspace.cfg < ./appdir/openspace2cffefb.cfg.patch
+        # patch ./appdir/usr/openspace.cfg < ./appdir/openspace2cffefb.cfg.patch
+        patch ./appdir/usr/openspace.cfg < ./appdir/openspace.cfg.patch
 
         # https://stackoverflow.com/questionopenspace.cfgs/43412885/fastest-way-to-delete-files-from-a-directory-tree-whose-names-contain-a-certain
         # delete source files from modules directory
@@ -128,13 +122,6 @@ jobs:
 
         # Strip libcef (libcef.so goes from 1.3GB to less than 200MB)
         strip --strip-unneeded $cef_install_dir/*.so
-
-        # We install gcc-13 in the build env and it also pulls a libstdc++ that's newer than the
-        # one in Ubuntu 22.04.5 and OpenSpace links to it. As a result, in order to make the
-        # AppImage more portable (at least vanilla Ubuntu 22.04.5), we need to bundle that lib as
-        # well
-        libstdcxx=/lib/x86_64-linux-gnu/libstdc++.so.6
-        cp ${libstdcxx} ./appdir/${libstdcxx}
 
         # turn AppDir into AppImage
         VERSION=${OPENSPACE_VERSION}-${APPIMAGE_VERSION} ./appimagetool-*.AppImage ./appdir
