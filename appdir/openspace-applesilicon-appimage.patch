@@ -1,0 +1,38 @@
+--- openspace-applesilicon.cfg	2025-08-14 13:09:03.783619370 +0530
++++ openspace-applesilicon-appimage.cfg	2025-08-14 13:12:45.110431839 +0530
+@@ -107,19 +107,19 @@
+     -- value.  Otherwise, fall back to the ${BASE}/sync folder instead.  This allows a
+     -- reuse of the sync folder between multiple OpenSpace installations by simply setting
+     -- that environment variable
+-    SYNC = os.getenv("OPENSPACE_SYNC") or "${BASE}/sync",
++    SYNC = os.getenv("OPENSPACE_SYNC") or "${USER}/sync",
+     SCREENSHOTS = "${USER}/screenshots",
+     WEB = "${DATA}/web",
+     RECORDINGS = "${USER}/recordings",
+-    CACHE = "${BASE}/cache",
++    CACHE = "${USER}/cache",
+     CONFIG = "${BASE}/config",
+     DOCUMENTATION = "${BASE}/documentation",
+-    LOGS = "${BASE}/logs",
++    LOGS = "${USER}/logs",
+     MODULES = "${BASE}/modules",
+     SCRIPTS = "${BASE}/scripts",
+     SHADERS = "${BASE}/shaders",
+-    TEMPORARY = "${BASE}/temp",
+-    GLOBEBROWSING = os.getenv("OPENSPACE_GLOBEBROWSING") or "${BASE}/../OpenSpaceData"
++    TEMPORARY = "${USER}/temp",
++    GLOBEBROWSING = os.getenv("OPENSPACE_GLOBEBROWSING") or "${USER}/../OpenSpaceData"
+ }
+ 
+ ModuleConfigurations = {
+@@ -132,8 +132,8 @@
+     Sync = {
+         SynchronizationRoot = "${SYNC}",
+         HttpSynchronizationRepositories = {
+-            -- "http://data.openspaceproject.com/request"
+-            "http://openspace.sci.utah.edu/request"
++            "http://data.openspaceproject.com/request"
++            -- "http://openspace.sci.utah.edu/request"
+             -- "http://localhost:8100/request"
+         }
+     },
