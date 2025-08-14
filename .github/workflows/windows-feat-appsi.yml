@@ -45,7 +45,15 @@ jobs:
         pip install aqtinstall
         aqt install-qt windows desktop 6.2.0 win64_msvc2019_64 --outputdir C:\Qt
 
-  
+    - name: Install Boost (MSVC 14.3)
+      run: choco install boost-msvc-14.3 -y
+
+    - name: Set Boost environment variables
+      run: |
+        echo "BOOST_ROOT=C:\tools\boost_1_85_0" >> $env:GITHUB_ENV
+        echo "BOOST_INCLUDEDIR=C:\tools\boost_1_85_0" >> $env:GITHUB_ENV
+        echo "BOOST_LIBRARYDIR=C:\tools\boost_1_85_0\lib64-msvc-14.3" >> $env:GITHUB_ENV
+
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
