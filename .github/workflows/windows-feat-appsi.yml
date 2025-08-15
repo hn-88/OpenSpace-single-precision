@@ -70,12 +70,11 @@ jobs:
       # Build your program with the given configuration
       run: |
         cd $env:openSpaceHome
-        cmake --build ./build --config RelWithDebInfo
+        # cmake --build ./build --config RelWithDebInfo
         # ./deploy.bat
-        
+  
  
- 
-    - name: Upload Artifact
+    - name: Upload Artifact only bin
       uses: actions/upload-artifact@v4
       with:
         # Artifact name
@@ -83,5 +82,20 @@ jobs:
         # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ env.openSpaceHome }}/bin/**
+
+    - name: Deploy
+      # Build and deploy your program with the given configuration
+      run: |
+        cd $env:openSpaceHome
+        ./deploy.bat
+        
+    - name: Upload Artifact minimal
+      uses: actions/upload-artifact@v4
+      with:
+        # Artifact name
+        name: OpenSpace-singleprec-minimal
+        # optional, default is artifact
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ${{ env.openSpaceHome }}/Ope*.zip
       
     
