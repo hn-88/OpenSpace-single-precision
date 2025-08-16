@@ -6,13 +6,14 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   # This yml is copied from https://github.com/hn-88/OCVWarp/blob/master/.github/workflows/cmake-nix.yml
   # and modified.
-  BUILD_TYPE: Release
+  BUILD_TYPE: RelWithDebInfo
   OPENSPACE_VERSION: "feature-applesilicon"
   APPIMAGE_VERSION: "1"
   openSpaceHome: ${{ github.workspace }}/source/OpenSpace
   QT_DIR: C:/Qt/6.2.0/msvc2019_64
   QT6_DIR: C:/Qt/6.2.0/msvc2019_64
   CMAKE_PREFIX_PATH: C:/Qt/6.2.0/msvc2019_64/lib/cmake
+  buildConfig: RelWithDebInfo
   
 jobs:
   build:
@@ -63,16 +64,14 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
         cd "$env:openSpaceHome/build"
-        # cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF $env:openSpaceHome
+        cmake -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF $env:openSpaceHome
         # -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20
 
     - name: Build
       # Build your program with the given configuration
       run: |
         cd $env:openSpaceHome
-        # cmake --build ./build --config RelWithDebInfo
-        # ./deploy.bat
-  
+        cmake --build ./build --config RelWithDebInfo
  
     - name: Upload Artifact only bin
       uses: actions/upload-artifact@v4
@@ -87,8 +86,57 @@ jobs:
       # Build and deploy your program with the given configuration
       run: |
         cd $env:openSpaceHome
-        ./deploy.bat
-        
+        # ./deploy.bat This fails, probably due to warnings which are treated as errors, and CMake flags
+
+    
+    
+    - name: Prepare deploy folder
+      shell: cmd
+      run: |
+        setlocal enabledelayedexpansion
+        rmdir /S /Q deploy 2>nul
+        mkdir deploy\OpenSpace
+    
+        rem Copy main executable
+        copy "%openSpaceHome%\build\%buildConfig%\OpenSpace.exe" deploy\OpenSpace\
+    
+        rem Copy DLLs and PDBs
+        for %%f in ("%openSpaceHome%\build\%buildConfig%\*.dll") do copy "%%f" deploy\OpenSpace\
+        for %%f in ("%openSpaceHome%\build\%buildConfig%\*.pdb") do copy "%%f" deploy\OpenSpace\
+    
+        rem Copy built modules, plugins, shaders
+        robocopy "%openSpaceHome%\build\%buildConfig%\modules" deploy\OpenSpace\modules /E
+        robocopy "%openSpaceHome%\build\%buildConfig%\plugins" deploy\OpenSpace\plugins /E
+        robocopy "%openSpaceHome%\build\%buildConfig%\shaders" deploy\OpenSpace\shaders /E
+    
+    - name: Copy data and configs
+      shell: cmd
+      run: |
+        setlocal enabledelayedexpansion
+        robocopy "%openSpaceHome%\data" deploy\OpenSpace\data /E
+        robocopy "%openSpaceHome%\config" deploy\OpenSpace\config /E
+        robocopy "%openSpaceHome%\scripts" deploy\OpenSpace\scripts /E
+        robocopy "%openSpaceHome%\documentation" deploy\OpenSpace\documentation /E
+        robocopy "%openSpaceHome%\assets" deploy\OpenSpace\assets /E
+        copy "%openSpaceHome%\openspace.cfg" deploy\OpenSpace\
+    
+    - name: Copy licenses and readme
+      shell: cmd
+      run: |
+        copy "%openSpaceHome%\LICENSE" deploy\OpenSpace\
+        copy "%openSpaceHome%\README.md" deploy\OpenSpace\
+        copy "%openSpaceHome%\THIRDPARTY.md" deploy\OpenSpace\
+    
+    - name: Download VC++ Redistributable
+      shell: cmd
+      run: |
+        curl -L -o deploy\OpenSpace\vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
+    
+    - name: Create ZIP package
+      shell: cmd
+      run: |
+        7z a OpenSpace-Windows.zip .\deploy\OpenSpace\*
+    
     - name: Upload Artifact minimal
       uses: actions/upload-artifact@v4
       with:
@@ -96,6 +144,6 @@ jobs:
         name: OpenSpace-singleprec-minimal
         # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{ env.openSpaceHome }}/Ope*.zip
+        path: Ope*.zip
       
     
