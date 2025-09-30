@@ -66,7 +66,10 @@ jobs:
         cp -v find_double_gl_usage.py "$openSpaceHome"
         cd "$openSpaceHome"
         python3 find_double_gl_usage.py
-        cat double_gl_report.csv
+        cp -v double_gl_report.csv ${{github.workspace}}
+        # keep only the rows with GL "dv" calls
+        grep -E 'glUniform.*dv|glVertex.*dv|glVertexAttrib.*dv' double_gl_report.csv > double_gl_opengl_calls.csv
+
 
   
     - name: Configure CMake
@@ -75,7 +78,7 @@ jobs:
       run: |
         openSpaceHome="$HOME/source/OpenSpace"
         cd "$openSpaceHome/build"
-        cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
+        # cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
         # -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20
 
     - name: Build
@@ -85,8 +88,19 @@ jobs:
         cd "$openSpaceHome/build"
         # Use the system's libvulkan, not the vendored one, otherwise they might conflict
         cef_orig_dir=$(find $HOME/source/OpenSpace/build -path */Release/libcef.so | xargs dirname)
-        rm -v $cef_orig_dir/libvulkan.so.1
+        # rm -v $cef_orig_dir/libvulkan.so.1
         # make -j $(nproc)
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        # Artifact name
+        name: OpenSpace-single-tests
+        # optional, default is artifact
+        # A file, directory or wildcard pattern that describes what to upload
+        path: |
+          double_gl_report.csv
+          double_gl_opengl_calls.csv
         
 
    
