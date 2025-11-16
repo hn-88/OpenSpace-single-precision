@@ -51,9 +51,7 @@ jobs:
         cp -v ghoul-patches/* "$openSpaceHome"
         cd "$openSpaceHome"
         git apply --verbose uniform_conversion_h.patch
-        git apply --verbose programobjectcpp.patch
-        
-        
+        mv -v ghoul-src-opengl-programobject.cpp ext/ghoul/src/opengl/programobject.cpp
   
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -61,7 +59,7 @@ jobs:
       run: |
         openSpaceHome="$HOME/source/OpenSpace"
         cd "$openSpaceHome/build"
-        # cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
+        cmake -DCMAKE_BUILD_TYPE="Release" -DASSIMP_BUILD_MINIZIP=1 -DBUILD_TESTS=OFF -DOPENSPACE_HAVE_TESTS=OFF -DSGCT_BUILD_TESTS=OFF "$openSpaceHome"
         # -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 -DCMAKE_C_COMPILER=/usr/bin/gcc-13 -DCMAKE_CXX_STANDARD=20
 
     - name: Build
