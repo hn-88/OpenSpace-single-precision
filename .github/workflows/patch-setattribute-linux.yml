@@ -50,8 +50,9 @@ jobs:
         openSpaceHome="$HOME/source/OpenSpace"
         cp -v ghoul-patches/* "$openSpaceHome"
         cd "$openSpaceHome"
-        git apply --verbose programobjectcpp.patch
         git apply --verbose uniform_conversion_h.patch
+        git apply --verbose programobjectcpp.patch
+        
         
   
     - name: Configure CMake
