@@ -1,5 +1,5 @@
 *** Begin Patch
-*** Update File: ghoul/src/opengl/programobject.cpp
+*** Update File: ext/ghoul/src/opengl/programobject.cpp
 @@
  #include <ghoul/filesystem/filesystem.h>
  #include <ghoul/logging/logmanager.h>
