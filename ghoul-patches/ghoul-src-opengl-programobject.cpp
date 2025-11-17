@@ -28,9 +28,9 @@
 #include <ghoul/filesystem/filesystem.h>
 #include <ghoul/format.h>
 #include <ghoul/logging/logmanager.h>
-#include "uniform_conversion.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
+#include "uniform_conversion.h"
 
 using glm::bvec2;
 using glm::bvec3;
