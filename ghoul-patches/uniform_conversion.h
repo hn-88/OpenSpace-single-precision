@@ -1,5 +1,3 @@
-#include <GL/glew.h>   // If using glad, replace with <glad/glad.h>
-
 namespace ghoul::opengl::util {
 
 // Convert an array of GLdouble -> GLfloat
