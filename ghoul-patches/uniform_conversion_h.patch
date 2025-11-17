@@ -1,5 +1,5 @@
 --- /dev/null
-+++ b/ghoul/src/opengl/uniform_conversion.h
++++ b/ext/ghoul/src/opengl/uniform_conversion.h
 @@ -0,0 +1,100 @@
 +#include <GL/glew.h>   // If using glad, replace with <glad/glad.h>
 +
