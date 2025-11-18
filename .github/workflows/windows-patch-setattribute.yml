@@ -208,27 +208,5 @@ jobs:
         # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ env.openSpaceHome }}/OpenSpace-minimal-singleprec.zip
-
-    - name: Upload .zip to GitHub Release - Windows
-      run: |
-        $RELEASE_TAG = "daily-WIN-ZIP"
-        $ZIP_FILE = "${{ env.openSpaceHome }}\OpenSpace-minimal-singleprec.zip"
-    
-        # Check if release exists
-        gh release view $RELEASE_TAG > $null 2>&1
-        if ($LASTEXITCODE -ne 0) {
-          gh release create $RELEASE_TAG -t "OpenSpace Windows Daily Build" -n "Automated daily build of OpenSpace."
-        }
-    
-        # Update title/notes each run
-        $timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")
-        gh release edit $RELEASE_TAG `
-          -t "OpenSpace Windows Daily Build" `
-          -n "Automated daily build of OpenSpace (updated $timestamp UTC)."
-    
-        # Upload .zip asset (overwrite if exists)
-        gh release upload $RELEASE_TAG $ZIP_FILE --clobber
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
-      
+  
     
