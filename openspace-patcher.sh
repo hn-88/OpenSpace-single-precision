@@ -35,159 +35,182 @@ create_backup() {
 # Counter for changes
 total_changes=0
 
-# Function to apply sed changes and count them
-apply_patch() {
+# Function to apply sed changes safely
+apply_sed() {
     local file="$1"
-    local pattern="$2"
-    local replacement="$3"
-    local description="$4"
+    shift
+    local description="$*"
     
     if [ -f "$file" ]; then
         create_backup "$file"
-        
-        # Check if pattern exists before applying
-        if grep -q "$pattern" "$file" 2>/dev/null; then
-            sed -i.tmp "s|$pattern|$replacement|g" "$file"
-            rm -f "${file}.tmp"
-            local count=$(grep -c "$replacement" "$file" || echo "0")
-            if [ "$count" -gt 0 ]; then
-                echo "  ✓ $description in $file"
-                ((total_changes++))
+        # Apply all sed commands passed as arguments
+        local changes_made=0
+        for pattern in "$@"; do
+            if [ "$pattern" != "$description" ]; then
+                if sed -i.sedtmp "$pattern" "$file" 2>/dev/null; then
+                    changes_made=1
+                fi
+                rm -f "${file}.sedtmp"
             fi
+        done
+        if [ $changes_made -eq 1 ]; then
+            echo "  ✓ $description"
+            ((total_changes++))
         fi
     fi
 }
 
 echo -e "\n${GREEN}=== Patching GLSL Shaders ===${NC}"
 
-# Pattern 1: dmat4 -> mat4 (uniform declarations)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    apply_patch "$file" \
-        "uniform dmat4" \
-        "uniform mat4" \
-        "Changed dmat4 uniforms to mat4"
-done
+# Find all shader files
+shader_files=$(find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) 2>/dev/null || true)
 
-# Pattern 2: dvec3 -> vec3 (uniform declarations)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    apply_patch "$file" \
-        "uniform dvec3" \
-        "uniform vec3" \
-        "Changed dvec3 uniforms to vec3"
-done
-
-# Pattern 3: dvec4 -> vec4 (uniform declarations)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    apply_patch "$file" \
-        "uniform dvec4" \
-        "uniform vec4" \
-        "Changed dvec4 uniforms to vec4"
-done
-
-# Pattern 4: dvec2 -> vec2 (uniform declarations)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    apply_patch "$file" \
-        "uniform dvec2" \
-        "uniform vec2" \
-        "Changed dvec2 uniforms to vec2"
-done
-
-# Pattern 5: double -> float (uniform declarations)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    apply_patch "$file" \
-        "uniform double" \
-        "uniform float" \
-        "Changed double uniforms to float"
-done
-
-# Pattern 6: dmat4 -> mat4 (variable declarations and casts)
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
+for file in $shader_files; do
     if [ -f "$file" ]; then
         create_backup "$file"
-        # More complex patterns requiring perl for better regex
-        perl -i -pe 's/\bdmat4\s+/mat4 /g' "$file"
-        perl -i -pe 's/\bdmat3\s+/mat3 /g' "$file"
-        perl -i -pe 's/\bdvec4\(/vec4(/g' "$file"
-        perl -i -pe 's/\bdvec3\(/vec3(/g' "$file"
-        perl -i -pe 's/\bdvec2\(/vec2(/g' "$file"
-        perl -i -pe 's/\bdouble\s+/float /g' "$file"
-    fi
-done
-
-# Pattern 7: Literal suffixes LF -> F
-find "$OPENSPACE_ROOT" -type f \( -name "*.glsl" -o -name "*.vs" -o -name "*.fs" -o -name "*.gs" -o -name "*.ge" \) | while read file; do
-    if [ -f "$file" ]; then
-        create_backup "$file"
-        perl -i -pe 's/(\d+\.\d+)LF/$1F/g' "$file"
+        
+        # Apply all shader transformations
+        sed -i.tmp '
+            # Uniform declarations
+            s/uniform dmat4/uniform mat4/g
+            s/uniform dmat3/uniform mat3/g
+            s/uniform dvec4/uniform vec4/g
+            s/uniform dvec3/uniform vec3/g
+            s/uniform dvec2/uniform vec2/g
+            s/uniform double/uniform float/g
+            
+            # Type declarations (word boundaries)
+            s/\([^a-zA-Z_]\)dmat4 /\1mat4 /g
+            s/\([^a-zA-Z_]\)dmat3 /\1mat3 /g
+            s/\([^a-zA-Z_]\)dvec4 /\1vec4 /g
+            s/\([^a-zA-Z_]\)dvec3 /\1vec3 /g
+            s/\([^a-zA-Z_]\)dvec2 /\1vec2 /g
+            s/\([^a-zA-Z_]\)double /\1float /g
+            
+            # Type casts
+            s/dmat4(/mat4(/g
+            s/dmat3(/mat3(/g
+            s/dvec4(/vec4(/g
+            s/dvec3(/vec3(/g
+            s/dvec2(/vec2(/g
+            
+            # Literal suffixes
+            s/\([0-9]\+\.[0-9]\+\)LF/\1F/g
+            s/\([0-9]\+\)LF/\1F/g
+        ' "$file"
+        
+        rm -f "${file}.tmp"
+        echo "  ✓ Patched shader: $(basename $file)"
     fi
 done
 
 echo -e "\n${GREEN}=== Patching C++ Files ===${NC}"
 
-# Pattern 8: setUniform with dmat4 -> mat4 casts
-find "$OPENSPACE_ROOT" -type f -name "*.cpp" | while read file; do
+# Find all C++ source files
+cpp_files=$(find "$OPENSPACE_ROOT" -type f -name "*.cpp" 2>/dev/null || true)
+
+for file in $cpp_files; do
     if [ -f "$file" ]; then
         create_backup "$file"
-        # Add static_cast<glm::mat4> around glm::dmat4 in setUniform calls
-        perl -i -pe 's/setUniform\s*\([^,]+,\s*((?:glm::)?dmat4\([^)]+\)[^)]*)\)/setUniform\($1, static_cast<glm::mat4>($2)\)/g' "$file"
         
-        # Handle cases where modelViewTransform, projectionTransform etc are dmat4
-        perl -i -pe 's/setUniform\s*\(([^,]+),\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)/
-            if ($2 =~ m\/(modelViewTransform|projectionTransform|modelMatrix|viewTransform|cameraViewProjectionMatrix|modelViewProjectionMatrix)\/) {
-                "setUniform($1, static_cast<glm::mat4>($2))"
-            } else {
-                "setUniform($1, $2)"
-            }
-        /ge' "$file"
-    fi
-done
-
-# Pattern 9: setUniform with dvec3 -> vec3 casts
-find "$OPENSPACE_ROOT" -type f -name "*.cpp" | while read file; do
-    if [ -f "$file" ]; then
-        create_backup "$file"
-        # Add static_cast<glm::vec3> for camera positions and similar
-        perl -i -pe 's/setUniform\s*\(([^,]+),\s*data\.camera\.(positionVec3|lookUpVectorWorldSpace)\(\s*\)\s*\)/setUniform($1, static_cast<glm::vec3>(data.camera.$2()))/g' "$file"
+        # Pattern 1: Add casts for matrix uniforms
+        sed -i.tmp '
+            # Cast modelViewTransform, projectionTransform, etc. to mat4
+            s/setUniform(\([^,]*\), \(modelViewTransform\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(projectionTransform\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(modelMatrix\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(viewTransform\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(modelViewProjectionMatrix\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(cameraViewProjectionMatrix\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(modelViewProjectionTransform\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(modelViewTransform\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(model\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(view\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            s/setUniform(\([^,]*\), \(projection\))/setUniform(\1, static_cast<glm::mat4>(\2))/g
+            
+            # Cast camera position/direction vectors to vec3
+            s/setUniform(\([^,]*\), data\.camera\.positionVec3())/setUniform(\1, static_cast<glm::vec3>(data.camera.positionVec3()))/g
+            s/setUniform(\([^,]*\), data\.camera\.lookUpVectorWorldSpace())/setUniform(\1, static_cast<glm::vec3>(data.camera.lookUpVectorWorldSpace()))/g
+            
+            # Cast common vec3 variables
+            s/setUniform(\([^,]*\), \(eyePosition\))/setUniform(\1, static_cast<glm::vec3>(\2))/g
+            s/setUniform(\([^,]*\), \(cameraPosition\))/setUniform(\1, static_cast<glm::vec3>(\2))/g
+            s/setUniform(\([^,]*\), \(cameraUp\))/setUniform(\1, static_cast<glm::vec3>(\2))/g
+            s/setUniform(\([^,]*\), \(cameraLookUp\))/setUniform(\1, static_cast<glm::vec3>(\2))/g
+            
+            # Cast inverse matrix operations
+            s/glm::inverse(data\.camera\.combinedViewMatrix())/glm::inverse(static_cast<glm::mat4>(data.camera.combinedViewMatrix()))/g
+            
+            # Cast matrix multiplications with dvec4
+            s/\* glm::dvec4(/* static_cast<glm::vec4>(/g
+            
+            # Cast uint32 to uint32_t
+            s/static_cast<uint32>/static_cast<uint32_t>/g
+            
+            # Cast j2000Seconds to float for time uniforms
+            s/data\.time\.j2000Seconds()/static_cast<float>(data.time.j2000Seconds())/g
+        ' "$file"
         
-        # Handle eyePosition and similar dvec3 variables
-        perl -i -pe 's/setUniform\s*\(([^,]+),\s*(eyePosition|cameraPosition|cameraUp|cameraLookUp)\s*\)/setUniform($1, static_cast<glm::vec3>($2))/g' "$file"
+        rm -f "${file}.tmp"
+        ((total_changes++))
     fi
 done
 
-# Pattern 10: Type declarations in C++ headers and source
-find "$OPENSPACE_ROOT" -type f \( -name "*.h" -o -name "*.cpp" \) | while read file; do
+# Find all C++ header files
+header_files=$(find "$OPENSPACE_ROOT" -type f -name "*.h" 2>/dev/null || true)
+
+for file in $header_files; do
     if [ -f "$file" ]; then
         create_backup "$file"
-        # Change glm::dmat4 member variables to glm::mat4 in specific contexts
-        perl -i -pe 's/(glm::)?dmat4\s+(_modelTransform|_transform|modelTransform)/glm::mat4 $2/g' "$file"
         
-        # Change struct member types
-        perl -i -pe 's/(double|glm::dvec3|glm::dvec4)\s+(umbra|penumbra|radiusSource|radiusCaster|sourceCasterVec|casterPositionVec)/float $2/g' "$file"
-        perl -i -pe 's/glm::dvec3\s+(sourceCasterVec)/glm::vec3 $1/g' "$file"
+        sed -i.tmp '
+            # Change member variable types
+            s/glm::dmat4 \(_modelTransform\)/glm::mat4 \1/g
+            s/glm::dmat4 \(modelTransform\)/glm::mat4 \1/g
+            s/glm::dmat4 \(_transform\)/glm::mat4 \1/g
+            
+            # Change struct members for shadow calculations
+            s/double umbra/float umbra/g
+            s/double penumbra/float penumbra/g
+            s/double radiusSource/float radiusSource/g
+            s/double radiusCaster/float radiusCaster/g
+            s/glm::dvec3 sourceCasterVec/glm::vec3 sourceCasterVec/g
+            s/glm::dvec3 casterPositionVec/glm::vec3 casterPositionVec/g
+            
+            # Change _localTransform type
+            s/glm::dmat4 _localTransform/glm::mat4 _localTransform/g
+        ' "$file"
+        
+        rm -f "${file}.tmp"
     fi
 done
 
-# Pattern 11: uint32 -> uint32_t for compatibility
-find "$OPENSPACE_ROOT" -type f \( -name "*.cpp" -o -name "*.h" \) | while read file; do
-    if [ -f "$file" ]; then
-        create_backup "$file"
-        perl -i -pe 's/static_cast<uint32>/static_cast<uint32_t>/g' "$file"
-    fi
-done
+echo -e "\n${GREEN}=== Additional C++ Casting Patterns ===${NC}"
 
-# Pattern 12: Specific casting patterns in calculations
-find "$OPENSPACE_ROOT" -type f -name "*.cpp" | while read file; do
+# Second pass for more complex patterns
+for file in $cpp_files; do
     if [ -f "$file" ]; then
-        create_backup "$file"
-        # Cast various transform operations
-        perl -i -pe 's/invModelMatrix \* glm::dvec4/invModelMatrix * static_cast<glm::vec4>/g' "$file"
-        perl -i -pe 's/modelTransform \* glm::dvec4/modelTransform * static_cast<glm::vec4>/g' "$file"
-        perl -i -pe 's/glm::inverse\(data\.camera\.combinedViewMatrix\(\)\)/glm::inverse(static_cast<glm::mat4>(data.camera.combinedViewMatrix()))/g' "$file"
+        # Additional patterns that need special handling
+        sed -i.tmp '
+            # Cast static_cast around dmat4/mat4 operations
+            s/setUniform(\([^,]*\), static_cast<glm::mat4>(\([^)]*\)) \* static_cast<glm::mat4>(\([^)]*\)))/setUniform(\1, (static_cast<glm::mat4>(\2) * static_cast<glm::mat4>(\3)))/g
+            
+            # Handle shadowMatrix casts
+            s/shadowData\.shadowMatrix \* modelTransform/(static_cast<glm::mat4>(shadowData.shadowMatrix) * static_cast<glm::mat4>(modelTransform))/g
+            
+            # Cast modelTransform in general matrix operations
+            s/\([^a-zA-Z_]\)modelTransform \* /\1static_cast<glm::mat4>(modelTransform) * /g
+        ' "$file"
+        
+        rm -f "${file}.tmp"
     fi
 done
 
 echo -e "\n${GREEN}=== Summary ===${NC}"
-echo "Total file modifications: $total_changes"
+echo "Processed files:"
+echo "  - Shader files: $(echo "$shader_files" | wc -l)"
+echo "  - C++ source files: $(echo "$cpp_files" | wc -l)"
+echo "  - Header files: $(echo "$header_files" | wc -l)"
 echo -e "${YELLOW}Note: Backup files (.backup) have been created for all modified files${NC}"
 
 echo -e "\n${GREEN}=== Verification Steps ===${NC}"
