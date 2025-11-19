@@ -73,7 +73,7 @@ jobs:
     - name: Run the patcher script
       run: |
         openSpaceHome="$HOME/source/OpenSpace"
-        bash ./patch_openspace.sh "$openSpaceHome"
+        bash ./openspace-patcher.sh "$openSpaceHome"
 
     - name: Enable sccache
       uses: mozilla-actions/sccache-action@v0.0.9
