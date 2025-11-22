@@ -1,4 +1,3 @@
-import urllib.request
 import re
 
 # The URL you provided
@@ -72,10 +71,11 @@ def parse_diff(diff_text):
     return changes
 
 def main():
-    print(f"Downloading diff from {DIFF_URL}...")
+    local_file = "applesilicon.diff.txt"
+    print(f"Reading from {local_file}...")
     try:
-        with urllib.request.urlopen(DIFF_URL) as response:
-            content = response.read().decode('utf-8')
+        with open(local_file, "r", encoding="utf-8") as f:
+            content = f.read()
             
         data = parse_diff(content)
         
