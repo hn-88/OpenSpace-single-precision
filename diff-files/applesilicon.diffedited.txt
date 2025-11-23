@@ -1880,10 +1880,10 @@ diff --git a/modules/base/rendering/pointcloud/renderablepointcloud.cpp b/module
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/base/rendering/pointcloud/renderablepointcloud.cpp
 +++ b/modules/base/rendering/pointcloud/renderablepointcloud.cpp
-@
+@@ 
 -_program->setUniform(_uniformCache.modelMatrix, modelMatrix);
 +_program->setUniform(_uniformCache.modelMatrix, glm::mat4(modelMatrix));
-@
+@@ 
 -    _program->setUniform(
 -        _uniformCache.cameraViewMatrix,
 -        data.camera.combinedViewMatrix()
@@ -1892,7 +1892,7 @@ index e6ca44a97e..887ba967dc 100644
 +        _uniformCache.cameraViewMatrix,
 +        glm::mat4(data.camera.combinedViewMatrix())
 +    );
-@
+@@ 
 -glm::dmat4(data.camera.projectionMatrix())
 +glm::mat4(data.camera.projectionMatrix())
-@
+
