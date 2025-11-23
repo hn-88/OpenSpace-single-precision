@@ -1645,8 +1645,8 @@ index 8207385ad8..51d58a8b60 100644
 +    _program->setUniform(_uniformCache.modelMatrix, static_cast<glm::mat4>(modelMatrix));
      _program->setUniform(
          _uniformCache.cameraViewProjectionMatrix,
--        cameraViewProjectionMatrix
-+        static_cast<glm::mat4>(cameraViewProjectionMatrix)
+-    _program->setUniform(_uniformCache.cameraViewProjectionMatrix, viewProjectionMatrix);
++    _program->setUniform(_uniformCache.cameraViewProjectionMatrix,static_cast<glm::mat4>(viewProjectionMatrix));
      );
      _program->setUniform(_uniformCache.colorOption, _colorOption);
      _program->setUniform(_uniformCache.magnitudeExponent, _magnitudeExponent);
