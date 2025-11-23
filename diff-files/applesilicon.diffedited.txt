@@ -1,0 +1,1991 @@
+diff --git a/apps/OpenSpace/ext/launcher/src/profile/profileedit.cpp b/apps/OpenSpace/ext/launcher/src/profile/profileedit.cpp
+index be170d2eef..19a9558b17 100644
+--- a/apps/OpenSpace/ext/launcher/src/profile/profileedit.cpp
++++ b/apps/OpenSpace/ext/launcher/src/profile/profileedit.cpp
+@@ -492,7 +492,7 @@ void ProfileEdit::approved() {
+     std::filesystem::path p = fmt::format(
+         "{}/{}.profile", _builtInProfilesPath, profileName
+     );
+-    if (std::filesystem::exists(p)) {
++    if (false && std::filesystem::exists(p)) {
+         // The filename exists in the OpenSpace-provided folder, so we don't want to allow
+         // a user to overwrite it
+         _errorMsg->setText(
+diff --git a/data/profiles/applesilicon.profile b/data/profiles/applesilicon.profile
+new file mode 100644
+index 0000000000..c38002e8f1
+--- /dev/null
++++ b/data/profiles/applesilicon.profile
+@@ -0,0 +1,116 @@
++{
++  "actions": [
++    {
++      "documentation": "Toggle trails on or off for satellites around Earth",
++      "gui_path": "/Solar System/Earth",
++      "identifier": "profile.toggle.satellite",
++      "is_local": false,
++      "name": "Toggle satellite trails",
++      "script": "local list = openspace.getProperty('{earth_satellites}.Renderable.Enabled'); for _,v in pairs(list) do openspace.setPropertyValueSingle(v, not openspace.getPropertyValue(v)) end"
++    },
++    {
++      "documentation": "Refocuses the camera on the ISS",
++      "gui_path": "/Solar System/Earth",
++      "identifier": "profile.focus.iss",
++      "is_local": false,
++      "name": "Focus ISS",
++      "script": "openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.Aim', '');openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.Anchor', 'ISS');openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.RetargetAnchor', nil);"
++    },
++    {
++      "documentation": "Retargets the camera on Earth",
++      "gui_path": "/Solar System/Earth",
++      "identifier": "profile.focus.earth",
++      "is_local": false,
++      "name": "Focus on Earth",
++      "script": "openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.Aim', '');openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.Anchor', 'Earth')openspace.setPropertyValueSingle('NavigationHandler.OrbitalNavigator.RetargetAnchor', nil);"
++    }
++  ],
++  "assets": [
++    "base_blank",
++    "modules/exoplanets/exoplanets",
++    "modules/skybrowser/hover_circle",
++    "modules/skybrowser/skybrowser",
++    "scene/digitaluniverse/digitaluniverse",
++    "scene/solarsystem/planets/earth/atmosphere",
++    "scene/solarsystem/planets/earth/earth",
++    "scene/solarsystem/planets/earth/eclipse_shadow",
++    "scene/solarsystem/planets/earth/moon/moon",
++    "scene/solarsystem/planets/earth/satellites/satellites",
++    "scene/solarsystem/planets/jupiter/jupiter",
++    "scene/solarsystem/planets/jupiter/major_moons",
++    "scene/solarsystem/planets/jupiter/trail"
++  ],
++  "camera": {
++    "anchor": "ISS",
++    "height": 10000.0,
++    "type": "goToNode"
++  },
++  "delta_times": [
++    1.0,
++    5.0,
++    30.0,
++    60.0,
++    300.0,
++    1800.0,
++    3600.0,
++    43200.0,
++    86400.0,
++    604800.0,
++    1209600.0,
++    2592000.0,
++    5184000.0,
++    7776000.0,
++    15552000.0,
++    31536000.0,
++    63072000.0,
++    157680000.0,
++    315360000.0,
++    630720000.0
++  ],
++  "keybindings": [
++    {
++      "action": "profile.toggle.satellite",
++      "key": "S"
++    },
++    {
++      "action": "profile.focus.iss",
++      "key": "I"
++    },
++    {
++      "action": "profile.focus.earth",
++      "key": "HOME"
++    }
++  ],
++  "mark_nodes": [
++    "Earth",
++    "Mars",
++    "Moon",
++    "Sun",
++    "Venus",
++    "ISS"
++  ],
++  "meta": {
++    "author": "OpenSpace Team",
++    "description": "Default OpenSpace Profile. Adds Earth satellites not contained in other profiles.",
++    "license": "MIT License",
++    "name": "Default",
++    "url": "https://www.openspaceproject.com",
++    "version": "1.0"
++  },
++  "properties": [
++    {
++      "name": "{earth_satellites}.Renderable.Enabled",
++      "type": "setPropertyValue",
++      "value": "false"
++    }
++  ],
++  "time": {
++    "is_paused": false,
++    "type": "relative",
++    "value": "-1d"
++  },
++  "version": {
++    "major": 1,
++    "minor": 3
++  }
++}
+\ No newline at end of file
+diff --git a/modules/atmosphere/rendering/atmospheredeferredcaster.cpp b/modules/atmosphere/rendering/atmospheredeferredcaster.cpp
+index 9724972f3e..b749c3e1dc 100644
+--- a/modules/atmosphere/rendering/atmospheredeferredcaster.cpp
++++ b/modules/atmosphere/rendering/atmospheredeferredcaster.cpp
+@@ -278,21 +278,21 @@ float AtmosphereDeferredcaster::eclipseShadow(glm::dvec3 position) {
+     }
+ 
+     const ShadowRenderingStruct& shadow = _shadowDataArrayCache.front();
+-    const glm::dvec3 positionToCaster = shadow.casterPositionVec - position;
+-    const glm::dvec3 sourceToCaster = shadow.sourceCasterVec; // Normalized
+-    const glm::dvec3 casterShadow =
++    const glm::vec3 positionToCaster = shadow.casterPositionVec -
++        static_cast<glm::vec3>(position);
++    const glm::vec3 sourceToCaster =
++        static_cast<glm::vec3>(shadow.sourceCasterVec); // Normalized
++    const glm::vec3 casterShadow =
+         dot(positionToCaster, sourceToCaster) * sourceToCaster;
+-    const glm::dvec3 positionToShadow = positionToCaster - casterShadow;
++    const glm::vec3 positionToShadow = positionToCaster - casterShadow;
+ 
+     float distanceToShadow = static_cast<float>(length(positionToShadow));
+-    double shadowLength = length(casterShadow);
++    float shadowLength = length(casterShadow);
+ 
+-    float radiusPenumbra = static_cast<float>(
+-        shadow.radiusCaster * (shadowLength + shadow.penumbra) / shadow.penumbra
+-    );
+-    float radiusUmbra = static_cast<float>(
+-        shadow.radiusCaster * (shadow.umbra - shadowLength) / shadow.umbra
+-    );
++    float radiusPenumbra = 
++        shadow.radiusCaster * (shadowLength + shadow.penumbra) / shadow.penumbra;
++    float radiusUmbra = 
++        shadow.radiusCaster * (shadow.umbra - shadowLength) / shadow.umbra;
+ 
+     // Is the position in the umbra - the fully shaded part
+     if (distanceToShadow < radiusUmbra) {
+@@ -318,12 +318,14 @@ void AtmosphereDeferredcaster::preRaycast(const RenderData& data, const Deferred
+     ZoneScoped;
+ 
+     // Atmosphere Frustum Culling
+-    glm::dvec3 tPlanetPos = glm::dvec3(_modelTransform * glm::dvec4(0.0, 0.0, 0.0, 1.0));
++    glm::dvec3 tPlanetPos = glm::dvec3(static_cast<glm::dmat4>(_modelTransform) *
++        glm::vec4(0.0, 0.0, 0.0, 1.0));
+     const double distance = glm::distance(tPlanetPos, data.camera.eyePositionVec3());
+ 
+     // Radius is in KM
+     const double scaledRadius = glm::length(
+-        glm::dmat3(_modelTransform) * glm::dvec3(KM_TO_M * _atmosphereRadius, 0.0, 0.0)
++        glm::dmat3(static_cast<glm::dmat4>(_modelTransform)) *
++        glm::dvec3(KM_TO_M * _atmosphereRadius, 0.0, 0.0)
+     );
+ 
+     // Number of planet radii to use as distance threshold for culling
+@@ -357,37 +359,40 @@ void AtmosphereDeferredcaster::preRaycast(const RenderData& data, const Deferred
+         prg.setUniform(_uniformCache.sunAngularSize, glm::radians(_sunAngularSize));
+ 
+         // Object Space
+-        glm::dmat4 invModelMatrix = glm::inverse(_modelTransform);
++        glm::mat4 invModelMatrix = glm::inverse(_modelTransform);
+         prg.setUniform(_uniformCache.inverseModelTransformMatrix, invModelMatrix);
+         prg.setUniform(_uniformCache.modelTransformMatrix, _modelTransform);
+ 
+-        glm::dmat4 viewToWorldMatrix = glm::inverse(data.camera.combinedViewMatrix());
++        glm::mat4 viewToWorldMatrix =
++            glm::inverse(static_cast<glm::mat4>(data.camera.combinedViewMatrix()));
+ 
+         // Eye Space to World Space
+         prg.setUniform(_uniformCache.viewToWorldMatrix, viewToWorldMatrix);
+ 
+         // Projection to Eye Space
+-        glm::dmat4 dInvProj = glm::inverse(glm::dmat4(data.camera.projectionMatrix()));
++        glm::mat4 dInvProj = glm::inverse(data.camera.projectionMatrix());
+ 
+-        glm::dmat4 invWholePipeline = invModelMatrix * viewToWorldMatrix * dInvProj;
++        glm::mat4 invWholePipeline = invModelMatrix * viewToWorldMatrix * dInvProj;
+ 
+         prg.setUniform(_uniformCache.projectionToModelTransform, invWholePipeline);
+ 
+-        glm::dvec4 camPosObjCoords =
+-            invModelMatrix * glm::dvec4(data.camera.eyePositionVec3(), 1.0);
+-        prg.setUniform(_uniformCache.camPosObj, glm::dvec3(camPosObjCoords));
++        glm::vec4 camPosObjCoords = invModelMatrix *
++            glm::vec4(static_cast<glm::vec3>(data.camera.eyePositionVec3()), 1.0);
++        prg.setUniform(_uniformCache.camPosObj, glm::vec3(camPosObjCoords));
+ 
+         SceneGraphNode* node = sceneGraph()->sceneGraphNode("Sun");
+         glm::dvec3 sunPosWorld = node ? node->worldPosition() : glm::dvec3(0.0);
+ 
+-        glm::dvec3 sunPosObj;
++        glm::vec3 sunPosObj;
+         // Sun following camera position
+         if (_sunFollowingCameraEnabled) {
+-            sunPosObj = invModelMatrix * glm::dvec4(data.camera.eyePositionVec3(), 1.0);
++            sunPosObj = invModelMatrix *
++                glm::vec4(glm::vec3(data.camera.eyePositionVec3()), 1.0);
+         }
+         else {
+-            sunPosObj = invModelMatrix *
+-                glm::dvec4((sunPosWorld - data.modelTransform.translation) * 1000.0, 1.0);
++            sunPosObj = invModelMatrix * static_cast<glm::vec4>(
++                glm::dvec4((sunPosWorld - data.modelTransform.translation) * 1000.0, 1.0)
++            );
+         }
+ 
+         // Sun Position in Object Space
+@@ -467,13 +472,13 @@ void AtmosphereDeferredcaster::preRaycast(const RenderData& data, const Deferred
+                 // The current caster is shadowing the current planet
+                 shadow.isShadowing = true;
+                 shadow.radiusSource = actualSourceRadius;
+-                shadow.radiusCaster = actualCasterRadius;
++                shadow.radiusCaster = static_cast<float>(actualCasterRadius);
+                 shadow.sourceCasterVec = glm::normalize(sourceCasterVec);
+-                shadow.penumbra = xpTest;
++                shadow.penumbra = static_cast<float>(xpTest);
+                 shadow.umbra =
+-                    shadow.radiusCaster * scLength /
++                    shadow.radiusCaster * static_cast<float>(scLength) /
+                     (shadow.radiusSource - shadow.radiusCaster);
+-                shadow.casterPositionVec = casterPos;
++                shadow.casterPositionVec = static_cast<glm::vec3>(casterPos);
+             }
+             _shadowDataArrayCache.push_back(shadow);
+         }
+@@ -495,7 +500,8 @@ void AtmosphereDeferredcaster::preRaycast(const RenderData& data, const Deferred
+                 std::strcpy(bf, "].rc\0");
+                 prg.setUniform(_uniformNameBuffer, sd.radiusCaster);
+                 std::strcpy(bf, "].sourceCasterVec\0");
+-                prg.setUniform(_uniformNameBuffer, sd.sourceCasterVec);
++                prg.setUniform(_uniformNameBuffer,
++                    static_cast<glm::vec3>(sd.sourceCasterVec));
+                 std::strcpy(bf, "].casterPositionVec\0");
+                 prg.setUniform(_uniformNameBuffer, sd.casterPositionVec);
+             }
+@@ -546,7 +552,7 @@ void AtmosphereDeferredcaster::initializeCachedVariables(
+ }
+ 
+ void AtmosphereDeferredcaster::setModelTransform(glm::dmat4 transform) {
+-    _modelTransform = std::move(transform);
++    _modelTransform = std::move(static_cast<glm::mat4>(transform));
+ }
+ 
+ void AtmosphereDeferredcaster::setOpacity(float opacity) {
+diff --git a/modules/atmosphere/rendering/atmospheredeferredcaster.h b/modules/atmosphere/rendering/atmospheredeferredcaster.h
+index d5e5960e2a..651a8a7d09 100644
+--- a/modules/atmosphere/rendering/atmospheredeferredcaster.h
++++ b/modules/atmosphere/rendering/atmospheredeferredcaster.h
+@@ -46,12 +46,12 @@ struct DeferredcastData;
+ struct ShadowConfiguration;
+ 
+ struct ShadowRenderingStruct {
+-    double umbra = 0.0;
+-    double penumbra = 0.0;
+-    double radiusSource = 0.0;
+-    double radiusCaster = 0.0;
+-    glm::dvec3 sourceCasterVec = glm::dvec3(0.0);
+-    glm::dvec3 casterPositionVec = glm::dvec3(0.0);
++    float umbra = 0.0;
++    float penumbra = 0.0;
++    float radiusSource = 0.0;
++    float radiusCaster = 0.0;
++    glm::dvec3 sourceCasterVec = glm::vec3(0.0);
++    glm::vec3 casterPositionVec = glm::vec3(0.0);
+     bool isShadowing = false;
+ };
+ 
+@@ -158,7 +158,7 @@ class AtmosphereDeferredcaster : public Deferredcaster {
+     const int _rSamples;
+     const glm::ivec3 _textureSize;
+ 
+-    glm::dmat4 _modelTransform;
++    glm::mat4 _modelTransform;
+     float _opacity = 1.f;
+ 
+     // Eclipse Shadows
+diff --git a/modules/atmosphere/shaders/atmosphere_deferred_fs.glsl b/modules/atmosphere/shaders/atmosphere_deferred_fs.glsl
+index 86da689bc5..bb2e034b1e 100644
+--- a/modules/atmosphere/shaders/atmosphere_deferred_fs.glsl
++++ b/modules/atmosphere/shaders/atmosphere_deferred_fs.glsl
+@@ -88,14 +88,14 @@ uniform sampler3D inscatterTexture;
+ uniform sampler2D mainPositionTexture;
+ uniform sampler2D mainNormalTexture;
+ uniform sampler2D mainColorTexture;
+-uniform dmat4 inverseModelTransformMatrix;
+-uniform dmat4 modelTransformMatrix;
+-uniform dmat4 viewToWorldMatrix;
+-uniform dmat4 projectionToModelTransformMatrix;
++uniform mat4 inverseModelTransformMatrix;
++uniform mat4 modelTransformMatrix;
++uniform mat4 viewToWorldMatrix;
++uniform mat4 projectionToModelTransformMatrix;
+ uniform vec4 viewport;
+ uniform vec2 resolution;
+-uniform dvec3 camPosObj;
+-uniform dvec3 sunDirectionObj;
++uniform vec3 camPosObj;
++uniform vec3 sunDirectionObj;
+ 
+ /*******************************************************************************
+  ***** ALL CALCULATIONS FOR ECLIPSE ARE IN METERS AND IN WORLD SPACE SYSTEM ****
+@@ -105,12 +105,12 @@ const uint numberOfShadows = 1;
+ 
+ 
+ struct ShadowRenderingStruct {
+-  double xu;
+-  double xp;
+-  double rs;
+-  double rc;
+-  dvec3 sourceCasterVec;
+-  dvec3 casterPositionVec;
++  float xu;
++  float xp;
++  float rs;
++  float rc;
++  vec3 sourceCasterVec;
++  vec3 casterPositionVec;
+   bool isShadowing;
+ };
+ 
+@@ -122,20 +122,20 @@ uniform bool hardShadows;
+ 
+ // Returns whether there is an eclipse in the x component and the strength of the
+ // shadowing in the y component
+-vec2 calcShadow(ShadowRenderingStruct shadowInfoArray[numberOfShadows], dvec3 position,
++vec2 calcShadow(ShadowRenderingStruct shadowInfoArray[numberOfShadows], vec3 position,
+                  bool ground)
+ {
+   if (!shadowInfoArray[0].isShadowing) {
+     return vec2(0.0, 1.0);
+   }
+ 
+-  dvec3 pc = shadowInfoArray[0].casterPositionVec - position;
+-  dvec3 scNorm = shadowInfoArray[0].sourceCasterVec;
+-  dvec3 pcProj = dot(pc, scNorm) * scNorm;
+-  dvec3 d = pc - pcProj;
++  vec3 pc = shadowInfoArray[0].casterPositionVec - position;
++  vec3 scNorm = shadowInfoArray[0].sourceCasterVec;
++  vec3 pcProj = dot(pc, scNorm) * scNorm;
++  vec3 d = pc - pcProj;
+ 
+   float length_d = float(length(d));
+-  double lengthPcProj = length(pcProj);
++  float lengthPcProj = length(pcProj);
+ 
+   float r_p_pi = float(shadowInfoArray[0].rc * (lengthPcProj + shadowInfoArray[0].xp) / shadowInfoArray[0].xp);
+   float r_u_pi = float(shadowInfoArray[0].rc * (shadowInfoArray[0].xu - lengthPcProj) / shadowInfoArray[0].xu);
+@@ -191,8 +191,8 @@ vec3 irradiance(sampler2D s, float r, float muSun) {
+ //////////////////////////////////////////////////////////////////////////////////////////
+ 
+ struct Ray {
+-  dvec3 origin;
+-  dvec3 direction;
++  vec3 origin;
++  vec3 direction;
+ };
+ 
+ /*
+@@ -209,13 +209,13 @@ struct Ray {
+  *                outside the atmosphere or the initial (and only) intersection of the ray
+  *                with atmosphere when the eye position is inside atmosphere.
+  */
+-bool atmosphereIntersection(Ray ray, double atmRadius, out double offset,
+-                            out double maxLength)
++bool atmosphereIntersection(Ray ray, float atmRadius, out float offset,
++                            out float maxLength)
+ {
+-  dvec3 l = -ray.origin;
+-  double s = dot(l, ray.direction);
+-  double l2 = dot(l, l);
+-  double r2 = atmRadius * atmRadius; // avoiding surface acne
++  vec3 l = -ray.origin;
++  float s = dot(l, ray.direction);
++  float l2 = dot(l, l);
++  float r2 = atmRadius * atmRadius; // avoiding surface acne
+ 
+   offset = 0.0;
+   maxLength = 0.0;
+@@ -225,7 +225,7 @@ bool atmosphereIntersection(Ray ray, double atmRadius, out double offset,
+     return false;
+   }
+ 
+-  double m2 = l2 - s * s;
++  float m2 = l2 - s * s;
+ 
+   // Ray misses atmosphere
+   if (m2 > r2) {
+@@ -233,7 +233,7 @@ bool atmosphereIntersection(Ray ray, double atmRadius, out double offset,
+   }
+ 
+   // If q = 0.0, there is only one intersection
+-  double q = sqrt(r2 - m2);
++  float q = sqrt(r2 - m2);
+ 
+   // If l2 < r2, the ray origin is inside the sphere
+   if (l2 > r2) {
+@@ -256,17 +256,17 @@ bool atmosphereIntersection(Ray ray, double atmRadius, out double offset,
+  */
+ Ray calculateRayRenderableGlobe(vec2 st) {
+   vec2 interpolatedNDCPos = (st - 0.5) * 2.0;
+-  dvec4 clipCoords = dvec4(interpolatedNDCPos, 1.0, 1.0);
++  vec4 clipCoords = vec4(interpolatedNDCPos, 1.0, 1.0);
+ 
+   // Clip to Object Coords
+-  dvec4 objectCoords = projectionToModelTransformMatrix * clipCoords;
++  vec4 objectCoords = projectionToModelTransformMatrix * clipCoords;
+   objectCoords.xyz /= objectCoords.w;
+ 
+   // Building Ray
+   // Ray in object space (in KM)
+   Ray ray;
+   ray.origin = camPosObj * 0.001;
+-  ray.direction = normalize(objectCoords.xyz * dvec3(0.001) - ray.origin);
++  ray.direction = normalize(objectCoords.xyz * vec3(0.001) - ray.origin);
+   return ray;
+ }
+ 
+@@ -289,7 +289,7 @@ Ray calculateRayRenderableGlobe(vec2 st) {
+  *                the reflectance R[L]
+  */
+ vec3 inscatterRadiance(vec3 x, inout float t, inout float irradianceFactor, vec3 v, vec3 s,
+-                       float r, vec3 fragPosObj, double maxLength, double pixelDepth,
++                       float r, vec3 fragPosObj, float maxLength, float pixelDepth,
+                        vec3 spaceColor, float sunIntensity,
+                        out float mu, out vec3 attenuation, out bool groundHit)
+ {
+@@ -498,7 +498,7 @@ vec3 groundColor(vec3 x, float t, vec3 v, vec3 s, vec3 attenuationXtoX0, vec3 gr
+  * attenuation := transmittance T(x,x0)
+  */
+ vec3 sunColor(vec3 v, vec3 s, float r, float mu, float irradianceFactor) {
+-  // v = normalize(vec3(inverseModelTransformMatrix * dvec4(sunWorld, 1.0)));
++  // v = normalize(vec3(inverseModelTransformMatrix * vec4(sunWorld, 1.0)));
+   float angle = dot(v, s);
+ 
+   // JCC: Change this function to a impostor texture with gaussian decay color weighted
+@@ -540,8 +540,8 @@ void main() {
+   // Get the ray from camera to atm in object space
+   Ray ray = calculateRayRenderableGlobe(texCoord);
+ 
+-  double offset = 0.0;   // in KM
+-  double maxLength = 0.0;   // in KM
++  float offset = 0.0;   // in KM
++  float maxLength = 0.0;   // in KM
+   bool intersect = atmosphereIntersection(ray, Rt - (ATM_EPSILON * 0.001), offset, maxLength);
+   if (!intersect) {
+     renderTarget.rgb = color;
+@@ -556,9 +556,9 @@ void main() {
+ 
+   // Normal is stored in view space and transformed to the current object space
+   vec4 normalViewSpaceAndWaterReflectance = texture(mainNormalTexture, st);
+-  dvec4 normalViewSpace = vec4(normalViewSpaceAndWaterReflectance.xyz, 0.0);
+-  dvec4 normalWorldSpace = viewToWorldMatrix * normalViewSpace;
+-  vec4 normal = vec4(inverseModelTransformMatrix * normalWorldSpace);
++  vec4 normalViewSpace = vec4(normalViewSpaceAndWaterReflectance.xyz, 0.0);
++  vec4 normalWorldSpace = viewToWorldMatrix * normalViewSpace;
++  vec4 normal = inverseModelTransformMatrix * normalWorldSpace;
+   normal.xyz = normalize(normal.xyz);
+   normal.w = normalViewSpaceAndWaterReflectance.w;
+ 
+@@ -566,15 +566,15 @@ void main() {
+   vec4 position = texture(mainPositionTexture, st);
+ 
+   // OS Eye to World coords
+-  dvec4 positionWorldCoords = viewToWorldMatrix * position;
++  vec4 positionWorldCoords = viewToWorldMatrix * position;
+ 
+   // World to Object (Normal and Position in meters)
+-  dvec3 positionObjectsCoords = (inverseModelTransformMatrix * positionWorldCoords).xyz;
++  vec3 positionObjectsCoords = (inverseModelTransformMatrix * positionWorldCoords).xyz;
+ 
+   // Distance of the pixel in the gBuffer to the observer
+   // JCC (12/12/2017): AMD distance function is buggy.
+-  //double pixelDepth = distance(cameraPositionInObject.xyz, positionObjectsCoords.xyz);
+-  double pixelDepth = length(camPosObj - positionObjectsCoords);
++  //float pixelDepth = distance(cameraPositionInObject.xyz, positionObjectsCoords.xyz);
++  float pixelDepth = length(camPosObj - positionObjectsCoords);
+ 
+   // JCC (12/13/2017): Trick to remove floating error in texture.
+   // We see a squared noise on planet's surface when seeing the planet from far away
+@@ -590,7 +590,7 @@ void main() {
+     const float diffDist = x2 - x1;
+     const float varA = diffGreek / diffDist;
+     const float varB = (alpha - varA * x1);
+-    pixelDepth += double(varA * dC + varB);
++    pixelDepth += float(varA * dC + varB);
+   }
+ 
+   // All calculations are done in KM:
+@@ -604,7 +604,7 @@ void main() {
+   }
+ 
+   // Following paper nomenclature
+-  double t = offset;
++  float t = offset;
+ 
+   // Moving observer from camera location to top atmosphere. If the observer is already
+   // inside the atm, offset = 0.0 and no changes at all
+@@ -612,7 +612,7 @@ void main() {
+   float r = length(x);
+   vec3 v = vec3(ray.direction);
+   float mu = 0.0; // dot(x, v) / r;
+-  vec3 s = vec3(sunDirectionObj);
++  vec3 s = sunDirectionObj;
+   float tF = float(maxLength - t);
+ 
+   // Because we may move the camera origin to the top of atmosphere we also need to
+@@ -620,7 +620,7 @@ void main() {
+   // comparison with the planet's ground make sense:
+   pixelDepth -= offset;
+ 
+-  dvec3 onATMPos = (modelTransformMatrix * dvec4(x * 1000.0, 1.0)).xyz;
++  vec3 onATMPos = (modelTransformMatrix * vec4(x * 1000.0, 1.0)).xyz;
+   vec2 eclipseShadowATM = calcShadow(shadowDataArray, onATMPos, false);
+   float sunIntensityInscatter = sunRadiance * eclipseShadowATM.y;
+ 
+diff --git a/modules/base/rendering/renderabletrail.cpp b/modules/base/rendering/renderabletrail.cpp
+index 1f0d9f26ba..a2ab43d7a8 100644
+--- a/modules/base/rendering/renderabletrail.cpp
++++ b/modules/base/rendering/renderabletrail.cpp
+@@ -294,7 +294,7 @@ void RenderableTrail::internalRender(bool renderLines, bool renderPoints,
+     glm::dmat4 modelViewTransform = calcModelViewTransform(data, modelTransform);
+     _programObject->setUniform(
+         _uniformCache.modelView,
+-        modelViewTransform * info._localTransform
++        static_cast<glm::mat4>(modelViewTransform) * info._localTransform
+     );
+ 
+     const int sorting = [](RenderInformation::VertexSorting s) {
+diff --git a/modules/base/rendering/renderabletrail.h b/modules/base/rendering/renderabletrail.h
+index a6a8a39188..853849e854 100644
+--- a/modules/base/rendering/renderabletrail.h
++++ b/modules/base/rendering/renderabletrail.h
+@@ -146,7 +146,7 @@ struct Appearance : properties::PropertyOwner {
+         VertexSorting sorting = VertexSorting::NoSorting;
+ 
+         /// Local model matrix transformation, used for rendering in camera space
+-        glm::dmat4 _localTransform = glm::dmat4(1.0);
++        glm::mat4 _localTransform = glm::mat4(1.0);
+ 
+         /// The vertex array object for this RenderInformation
+         GLuint _vaoID = 0;
+diff --git a/modules/base/shaders/arrow_vs.glsl b/modules/base/shaders/arrow_vs.glsl
+index 919e838d2d..74122df37c 100644
+--- a/modules/base/shaders/arrow_vs.glsl
++++ b/modules/base/shaders/arrow_vs.glsl
+@@ -36,7 +36,7 @@ uniform mat4 projectionTransform;
+ uniform mat3 normalTransform;
+ 
+ void main() {
+-  vs_positionViewSpace = vec4(modelViewTransform * dvec4(in_position, 1));
++  vs_positionViewSpace = vec4(modelViewTransform * vec4(in_position, 1));
+   vec4 positionScreenSpace = projectionTransform * vs_positionViewSpace;
+   vs_depth = positionScreenSpace.w;
+   vs_normal = normalize(normalTransform * in_normal);
+diff --git a/modules/base/shaders/grid_vs.glsl b/modules/base/shaders/grid_vs.glsl
+index 87dc838550..99015f83b4 100644
+--- a/modules/base/shaders/grid_vs.glsl
++++ b/modules/base/shaders/grid_vs.glsl
+@@ -29,14 +29,14 @@ layout(location = 0) in vec3 in_position;
+ out float vs_depthClipSpace;
+ out vec4 vs_positionViewSpace;
+ 
+-uniform dmat4 modelViewTransform;
+-uniform dmat4 MVPTransform;
++uniform mat4 modelViewTransform;
++uniform mat4 MVPTransform;
+ 
+ 
+ void main() {
+-  dvec4 objPosDouble = dvec4(in_position, 1.0);
+-  dvec4 positionViewSpace = modelViewTransform * objPosDouble;
+-  dvec4 positionClipSpace = MVPTransform * objPosDouble;
++  vec4 objPosDouble = vec4(in_position, 1.0);
++  vec4 positionViewSpace = modelViewTransform * objPosDouble;
++  vec4 positionClipSpace = MVPTransform * objPosDouble;
+ 
+   positionClipSpace.z = 0.0;
+ 
+diff --git a/modules/base/shaders/line_vs.glsl b/modules/base/shaders/line_vs.glsl
+index 372def6e0c..7e373ab988 100644
+--- a/modules/base/shaders/line_vs.glsl
++++ b/modules/base/shaders/line_vs.glsl
+@@ -34,7 +34,7 @@ uniform mat4 projectionTransform;
+ 
+ 
+ void main() {
+-  vs_positionViewSpace = vec4(modelViewTransform * dvec4(in_position, 1));
++  vs_positionViewSpace = vec4(modelViewTransform * vec4(in_position, 1));
+   vec4 positionScreenSpace = projectionTransform * vs_positionViewSpace;
+   vs_depth = positionScreenSpace.w;
+   gl_Position  = positionScreenSpace;
+diff --git a/modules/base/shaders/renderabletrail_fs.glsl b/modules/base/shaders/renderabletrail_fs.glsl
+index 7d0ac545ef..b7f1b627db 100644
+--- a/modules/base/shaders/renderabletrail_fs.glsl
++++ b/modules/base/shaders/renderabletrail_fs.glsl
+@@ -68,8 +68,8 @@ Fragment getFragment() {
+   vec2 xy = vec2(gl_FragCoord.xy);
+   xy -= viewport.xy;
+ 
+-  double distanceCenter = length(mathLine - xy);
+-  double dLW = double(lineWidth);
++  float distanceCenter = length(mathLine - xy);
++  float dLW = lineWidth;
+   const float blendFactor = 20.0;
+ 
+   if (distanceCenter > dLW) {
+diff --git a/modules/base/shaders/renderabletrail_vs.glsl b/modules/base/shaders/renderabletrail_vs.glsl
+index 1b5f818a53..f2383432a8 100644
+--- a/modules/base/shaders/renderabletrail_vs.glsl
++++ b/modules/base/shaders/renderabletrail_vs.glsl
+@@ -33,7 +33,7 @@ out vec4 vs_gPosition;
+ out float fade;
+ noperspective out vec2 mathLine;
+ 
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+ uniform mat4 projectionTransform;
+ uniform int idOffset;
+ uniform int nVertices;
+@@ -74,7 +74,7 @@ void main() {
+     fade = 1.0;
+   }
+ 
+-  vs_gPosition = vec4(modelViewTransform * dvec4(in_point_position, 1));
++  vs_gPosition = vec4(modelViewTransform * vec4(in_point_position, 1));
+   vec4 vs_positionClipSpace = projectionTransform * vs_gPosition;
+   vec4 vs_positionNDC = vs_positionClipSpace / vs_positionClipSpace.w;
+   vs_positionDepth = vs_positionClipSpace.w;
+diff --git a/modules/digitaluniverse/rendering/renderablebillboardscloud.cpp b/modules/digitaluniverse/rendering/renderablebillboardscloud.cpp
+index 3f04668c98..cec8d113f5 100644
+--- a/modules/digitaluniverse/rendering/renderablebillboardscloud.cpp
++++ b/modules/digitaluniverse/rendering/renderablebillboardscloud.cpp
+@@ -627,16 +627,21 @@ void RenderableBillboardsCloud::renderBillboards(const RenderData& data,
+         glm::vec2(global::renderEngine->renderingResolution())
+     );
+ 
+-    _program->setUniform(_uniformCache.cameraPos, data.camera.positionVec3());
++    _program->setUniform(
++        _uniformCache.cameraPos,
++        static_cast<glm::vec3>(data.camera.positionVec3())
++    );
+     _program->setUniform(
+         _uniformCache.cameraLookup,
+         glm::vec3(data.camera.lookUpVectorWorldSpace())
+     );
+     _program->setUniform(_uniformCache.renderOption, _renderOption.value());
+-    _program->setUniform(_uniformCache.modelMatrix, modelMatrix);
++    _program->setUniform(_uniformCache.modelMatrix, static_cast<glm::mat4>(modelMatrix));
+     _program->setUniform(
+         _uniformCache.cameraViewProjectionMatrix,
+-        glm::dmat4(data.camera.projectionMatrix()) * data.camera.combinedViewMatrix()
++        static_cast<glm::mat4>(
++            glm::dmat4(data.camera.projectionMatrix()) * data.camera.combinedViewMatrix()
++        )
+     );
+ 
+     const float minBillboardSize = _billboardMinMaxSize.value().x; // in pixels
+diff --git a/modules/digitaluniverse/rendering/renderabledumeshes.cpp b/modules/digitaluniverse/rendering/renderabledumeshes.cpp
+index 96b4f4fd39..c2f6bf74c1 100644
+--- a/modules/digitaluniverse/rendering/renderabledumeshes.cpp
++++ b/modules/digitaluniverse/rendering/renderabledumeshes.cpp
+@@ -330,8 +330,14 @@ void RenderableDUMeshes::renderMeshes(const RenderData&,
+ 
+     _program->activate();
+ 
+-    _program->setUniform(_uniformCache.modelViewTransform, modelViewMatrix);
+-    _program->setUniform(_uniformCache.projectionTransform, projectionMatrix);
++    _program->setUniform(
++        _uniformCache.modelViewTransform,
++        static_cast<glm::mat4>(modelViewMatrix)
++    );
++    _program->setUniform(
++        _uniformCache.projectionTransform,
++        static_cast<glm::mat4>(projectionMatrix)
++    );
+     _program->setUniform(_uniformCache.alphaValue, opacity());
+ 
+     for (const std::pair<const int, RenderingMesh>& pair : _renderingMeshesMap) {
+diff --git a/modules/digitaluniverse/rendering/renderableplanescloud.cpp b/modules/digitaluniverse/rendering/renderableplanescloud.cpp
+index c599f429fb..563f0fd7ef 100644
+--- a/modules/digitaluniverse/rendering/renderableplanescloud.cpp
++++ b/modules/digitaluniverse/rendering/renderableplanescloud.cpp
+@@ -391,7 +391,7 @@ void RenderablePlanesCloud::renderPlanes(const RenderData&,
+         glm::dmat4(projectionTransform) * modelViewTransform;
+     _program->setUniform(
+         _uniformCache.modelViewProjectionTransform,
+-        modelViewProjectionTransform
++        static_cast<glm::mat4>(modelViewProjectionTransform)
+     );
+     _program->setUniform(_uniformCache.alphaValue, opacity());
+     _program->setUniform(_uniformCache.fadeInValue, fadeInVariable);
+diff --git a/modules/digitaluniverse/rendering/renderablepoints.cpp b/modules/digitaluniverse/rendering/renderablepoints.cpp
+index c104723ffb..e220912cd6 100644
+--- a/modules/digitaluniverse/rendering/renderablepoints.cpp
++++ b/modules/digitaluniverse/rendering/renderablepoints.cpp
+@@ -238,7 +238,7 @@ void RenderablePoints::render(const RenderData& data, RendererTasks&) {
+ 
+     _program->setUniform(
+         _uniformCache.modelViewProjectionTransform,
+-        calcModelViewProjectionTransform(data, glm::dmat4(1.0))
++        static_cast<glm::mat4>(calcModelViewProjectionTransform(data, glm::dmat4(1.0)))
+     );
+ 
+     _program->setUniform(_uniformCache.color, _pointColor);
+diff --git a/modules/digitaluniverse/shaders/billboard_gs.glsl b/modules/digitaluniverse/shaders/billboard_gs.glsl
+index 0e5cfc658d..83e239e002 100644
+--- a/modules/digitaluniverse/shaders/billboard_gs.glsl
++++ b/modules/digitaluniverse/shaders/billboard_gs.glsl
+@@ -39,8 +39,8 @@ out float ta;
+ // General settings
+ uniform float scaleFactor;
+ uniform int renderOption;
+-uniform dmat4 cameraViewProjectionMatrix;
+-uniform dmat4 modelMatrix;
++uniform mat4 cameraViewProjectionMatrix;
++uniform mat4 modelMatrix;
+ uniform bool enabledRectSizeControl;
+ uniform bool hasDvarScaling;
+ 
+@@ -49,7 +49,7 @@ uniform vec3 up;
+ uniform vec3 right;
+ 
+ // RenderOption: CameraPositionNormal
+-uniform dvec3 cameraPosition;
++uniform vec3 cameraPosition;
+ uniform vec3 cameraLookUp;
+ uniform float correctionSizeFactor;
+ uniform float correctionSizeEndDistance;
+@@ -59,7 +59,7 @@ uniform vec2 screenSize;
+ uniform float maxBillboardSize;
+ uniform float minBillboardSize;
+ 
+-const double PARSEC = 0.308567756e17LF;
++const float PARSEC = 0.308567756e17F;
+ 
+ const vec2 corners[4] = vec2[4](
+   vec2(0.0, 0.0),
+@@ -77,7 +77,7 @@ void main() {
+   vec4 pos = gl_in[0].gl_Position;
+   gs_colorMap = colorMap[0];
+ 
+-  double unit = PARSEC;
++  float unit = PARSEC;
+ 
+   // Must be the same as the enum in RenderableBillboardsCloud.h
+   if (pos.w == 1.0) { unit = 1E3; }
+@@ -90,7 +90,7 @@ void main() {
+     unit = 306391534.73091 * PARSEC;
+   }
+ 
+-  dvec4 dpos = modelMatrix * dvec4(dvec3(pos.xyz) * unit, 1.0);
++  vec4 dpos = modelMatrix * vec4(pos.xyz * unit, 1.0);
+ 
+   float scaleMultiply = exp(scaleFactor * 0.10);
+   if (hasDvarScaling) {
+@@ -110,7 +110,7 @@ void main() {
+     vec3 newUp = cross(normal, newRight);
+ 
+     if (!enabledRectSizeControl) {
+-      double distCamera = length(cameraPosition - dpos.xyz);
++      float distCamera = length(cameraPosition - dpos.xyz);
+       float expVar = float(-distCamera) / pow(10.0, correctionSizeEndDistance);
+       float factorVar = pow(10.0, correctionSizeFactor);
+       scaleMultiply *= 1.0 / (1.0 + factorVar * exp(expVar));
+@@ -122,12 +122,12 @@ void main() {
+ 
+   if (enabledRectSizeControl) {
+     vec4 initialPosition = z_normalization(vec4(cameraViewProjectionMatrix *
+-      dvec4(dpos.xyz - dvec3(scaledRight - scaledUp), dpos.w)));
++      vec4(dpos.xyz - (scaledRight - scaledUp), dpos.w)));
+ 
+     vs_screenSpaceDepth = initialPosition.w;
+ 
+     vec4 crossCorner = z_normalization(vec4(cameraViewProjectionMatrix *
+-      dvec4(dpos.xyz + dvec3(scaledRight + scaledUp), dpos.w)));
++      vec4(dpos.xyz + (scaledRight + scaledUp), dpos.w)));
+ 
+     // Testing size for rectangular viewport:
+     vec2 halfViewSize = screenSize * 0.5;
+@@ -159,8 +159,8 @@ void main() {
+ 
+   // Saving one matrix multiplication:
+   vec4 dposClip = vec4(cameraViewProjectionMatrix * dpos);
+-  vec4 scaledRightClip = vec4(cameraViewProjectionMatrix * dvec4(scaledRight, 0.0));
+-  vec4 scaledUpClip = vec4(cameraViewProjectionMatrix * dvec4(scaledUp, 0.0));
++  vec4 scaledRightClip = vec4(cameraViewProjectionMatrix * vec4(scaledRight, 0.0));
++  vec4 scaledUpClip = vec4(cameraViewProjectionMatrix * vec4(scaledUp, 0.0));
+ 
+   vec4 initialPosition = z_normalization(dposClip - scaledRightClip - scaledUpClip);
+   vs_screenSpaceDepth = initialPosition.w;
+diff --git a/modules/digitaluniverse/shaders/dumesh_vs.glsl b/modules/digitaluniverse/shaders/dumesh_vs.glsl
+index 1d092656c8..d020bc29dd 100644
+--- a/modules/digitaluniverse/shaders/dumesh_vs.glsl
++++ b/modules/digitaluniverse/shaders/dumesh_vs.glsl
+@@ -31,12 +31,12 @@ in vec3 in_position;
+ out float vs_screenSpaceDepth;
+ out vec4 vs_positionViewSpace;
+ 
+-uniform dmat4 modelViewTransform;
+-uniform dmat4 projectionTransform;
++uniform mat4 modelViewTransform;
++uniform mat4 projectionTransform;
+ 
+ 
+ void main() {
+-  dvec4 positionViewSpace  = modelViewTransform * dvec4(in_position, 1.0);
++  vec4 positionViewSpace  = modelViewTransform * vec4(in_position, 1.0);
+   vec4 positionClipSpace   = vec4(projectionTransform * positionViewSpace);
+   vec4 positionScreenSpace = vec4(z_normalization(positionClipSpace));
+ 
+diff --git a/modules/digitaluniverse/shaders/plane_vs.glsl b/modules/digitaluniverse/shaders/plane_vs.glsl
+index e72964b33f..af07ffe4ec 100644
+--- a/modules/digitaluniverse/shaders/plane_vs.glsl
++++ b/modules/digitaluniverse/shaders/plane_vs.glsl
+@@ -32,12 +32,12 @@ layout(location = 1) in vec2 in_st;
+ out vec2 vs_st;
+ out float vs_screenSpaceDepth;
+ 
+-uniform dmat4 modelViewProjectionTransform;
++uniform mat4 modelViewProjectionTransform;
+ 
+ 
+ void main() {
+   vs_st = in_st;
+-  vec4 positionClipSpace = vec4(modelViewProjectionTransform * dvec4(in_position));
++  vec4 positionClipSpace = vec4(modelViewProjectionTransform * vec4(in_position));
+   vec4 positionScreenSpace = z_normalization(positionClipSpace);
+ 
+   vs_screenSpaceDepth = positionScreenSpace.w;
+diff --git a/modules/digitaluniverse/shaders/points_vs.glsl b/modules/digitaluniverse/shaders/points_vs.glsl
+index d27c7c35a9..3008d0bfe3 100644
+--- a/modules/digitaluniverse/shaders/points_vs.glsl
++++ b/modules/digitaluniverse/shaders/points_vs.glsl
+@@ -26,14 +26,14 @@
+ 
+ #include "PowerScaling/powerScaling_vs.hglsl"
+ 
+-in dvec4 in_position;
+-in dvec4 in_colormap;
++in vec4 in_position;
++in vec4 in_colormap;
+ 
+ out float vs_screenSpaceDepth;
+ out float vs_scaleFactor;
+ out vec4 colorMap;
+ 
+-uniform dmat4 modelViewProjectionTransform;
++uniform mat4 modelViewProjectionTransform;
+ uniform float scaleFactor;
+ 
+ 
+diff --git a/modules/gaia/rendering/renderablegaiastars.cpp b/modules/gaia/rendering/renderablegaiastars.cpp
+index f99b1c75aa..a31dda6dc5 100644
+--- a/modules/gaia/rendering/renderablegaiastars.cpp
++++ b/modules/gaia/rendering/renderablegaiastars.cpp
+@@ -1205,9 +1205,9 @@ void RenderableGaiaStars::render(const RenderData& data, RendererTasks&) {
+     glDepthMask(false);
+     _program->activate();
+ 
+-    _program->setUniform(_uniformCache.model, model);
+-    _program->setUniform(_uniformCache.view, view);
+-    _program->setUniform(_uniformCache.projection, projection);
++    _program->setUniform(_uniformCache.model, static_cast<glm::mat4>(model));
++    _program->setUniform(_uniformCache.view, static_cast<glm::mat4>(view));
++    _program->setUniform(_uniformCache.projection, static_cast<glm::mat4>(projection));
+     _program->setUniform(
+         _uniformCache.time,
+         static_cast<float>(data.time.j2000Seconds())
+@@ -1250,11 +1250,11 @@ void RenderableGaiaStars::render(const RenderData& data, RendererTasks&) {
+         case gaia::ShaderOption::BillboardSSBONoFBO:
+             _program->setUniform(
+                 _uniformCache.cameraPos,
+-                data.camera.positionVec3()
++                static_cast<glm::vec3>(data.camera.positionVec3())
+             );
+             _program->setUniform(
+                 _uniformCache.cameraLookUp,
+-                data.camera.lookUpVectorWorldSpace()
++                static_cast<glm::vec3>(data.camera.lookUpVectorWorldSpace())
+             );
+             _program->setUniform(_uniformCache.maxStarsPerNode, maxStarsPerNode);
+             _program->setUniform(_uniformCache.valuesPerStar, valuesPerStar);
+@@ -1274,11 +1274,11 @@ void RenderableGaiaStars::render(const RenderData& data, RendererTasks&) {
+         case gaia::ShaderOption::BillboardVBO:
+             _program->setUniform(
+                 _uniformCache.cameraPos,
+-                data.camera.positionVec3()
++                static_cast<glm::vec3>(data.camera.positionVec3())
+             );
+             _program->setUniform(
+                 _uniformCache.cameraLookUp,
+-                data.camera.lookUpVectorWorldSpace()
++                static_cast<glm::vec3>(data.camera.lookUpVectorWorldSpace())
+             );
+             _program->setUniform(_uniformCache.closeUpBoostDist,
+                 _closeUpBoostDist * static_cast<float>(distanceconstants::Parsec)
+@@ -1335,7 +1335,7 @@ void RenderableGaiaStars::render(const RenderData& data, RendererTasks&) {
+             _programTM->setUniform(_uniformCacheTM.screenSize, screenSize);
+             _programTM->setUniform(_uniformCacheTM.filterSize, _tmPointFilterSize);
+             _programTM->setUniform(_uniformCacheTM.sigma, _tmPointSigma);
+-            _programTM->setUniform(_uniformCacheTM.projection, projection);
++            _programTM->setUniform(_uniformCacheTM.projection, static_cast<glm::mat4>(projection));
+             _programTM->setUniform(
+                 _uniformCacheTM.pixelWeightThreshold,
+                 _tmPointPixelWeightThreshold
+diff --git a/modules/gaia/shaders/gaia_billboard_ge.glsl b/modules/gaia/shaders/gaia_billboard_ge.glsl
+index 4d3df59446..06adcb6ccb 100644
+--- a/modules/gaia/shaders/gaia_billboard_ge.glsl
++++ b/modules/gaia/shaders/gaia_billboard_ge.glsl
+@@ -40,10 +40,10 @@ out float ge_starDistFromSun;
+ out float ge_cameraDistFromSun;
+ out float ge_observedDist;
+ 
+-uniform dmat4 view;
+-uniform dmat4 projection;
+-uniform dvec3 cameraPos;
+-uniform dvec3 cameraLookUp;
++uniform mat4 view;
++uniform mat4 projection;
++uniform vec3 cameraPos;
++uniform vec3 cameraLookUp;
+ uniform float viewScaling;
+ uniform float cutOffThreshold;
+ uniform float closeUpBoostDist;
+@@ -105,9 +105,9 @@ void main() {
+ 
+   vec4 centerWorldPos = vs_gPosition[0];
+ 
+-  dvec3 cameraNormal = normalize(cameraPos - dvec3(centerWorldPos.xyz));
+-  dvec3 newRight = normalize(cross(cameraLookUp, cameraNormal));
+-  dvec3 newUp = cross(cameraNormal, newRight);
++  vec3 cameraNormal = normalize(cameraPos - vec3(centerWorldPos.xyz));
++  vec3 newRight = normalize(cross(cameraLookUp, cameraNormal));
++  vec3 newUp = cross(cameraNormal, newRight);
+   vec4 wCameraRight = vec4(newRight, 0.0);
+   vec4 wCameraUp = vec4(newUp, 0.0);
+ 
+diff --git a/modules/gaia/shaders/gaia_point_ge.glsl b/modules/gaia/shaders/gaia_point_ge.glsl
+index c7cb52803a..36a490255f 100644
+--- a/modules/gaia/shaders/gaia_point_ge.glsl
++++ b/modules/gaia/shaders/gaia_point_ge.glsl
+@@ -39,7 +39,7 @@ out float ge_starDistFromSun;
+ out float ge_cameraDistFromSun;
+ out float ge_observedDist;
+ 
+-uniform dmat4 view;
++uniform mat4 view;
+ uniform float viewScaling;
+ uniform float cutOffThreshold;
+ 
+diff --git a/modules/gaia/shaders/gaia_ssbo_vs.glsl b/modules/gaia/shaders/gaia_ssbo_vs.glsl
+index b379f956df..e6c3b1b379 100644
+--- a/modules/gaia/shaders/gaia_ssbo_vs.glsl
++++ b/modules/gaia/shaders/gaia_ssbo_vs.glsl
+@@ -39,9 +39,9 @@ out vec4 vs_gPosition;
+ out float vs_starDistFromSun;
+ out float vs_cameraDistFromSun;
+ 
+-uniform dmat4 model;
+-uniform dmat4 view;
+-uniform dmat4 projection;
++uniform mat4 model;
++uniform mat4 view;
++uniform mat4 projection;
+ uniform float time;
+ uniform int renderOption;
+ uniform int maxStarsPerNode;
+@@ -168,8 +168,8 @@ void main() {
+   }
+ 
+   // Apply camera transforms
+-  dvec4 viewPosition = view * model * objectPosition;
+-  vec4 sunPosition = vec4(view * model * dvec4(0.0f, 0.0f, 0.0f, 1.0f));
++  vec4 viewPosition = view * model * objectPosition;
++  vec4 sunPosition = vec4(view * model * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+ 
+   vs_starDistFromSun = safeLength(objectPosition);
+   vs_cameraDistFromSun = safeLength(sunPosition);
+diff --git a/modules/gaia/shaders/gaia_tonemapping_point_fs.glsl b/modules/gaia/shaders/gaia_tonemapping_point_fs.glsl
+index 09c5548510..ed6e76bacc 100644
+--- a/modules/gaia/shaders/gaia_tonemapping_point_fs.glsl
++++ b/modules/gaia/shaders/gaia_tonemapping_point_fs.glsl
+@@ -27,7 +27,7 @@
+ in vec2 uv;
+ 
+ uniform sampler2D renderedTexture;
+-uniform dmat4 projection;
++uniform mat4 projection;
+ uniform vec2 screenSize;
+ uniform int filterSize;
+ uniform float sigma;
+diff --git a/modules/gaia/shaders/gaia_vbo_vs.glsl b/modules/gaia/shaders/gaia_vbo_vs.glsl
+index cd1b7b8745..bd8cf4235a 100644
+--- a/modules/gaia/shaders/gaia_vbo_vs.glsl
++++ b/modules/gaia/shaders/gaia_vbo_vs.glsl
+@@ -35,9 +35,9 @@ out vec4 vs_gPosition;
+ out float vs_starDistFromSun;
+ out float vs_cameraDistFromSun;
+ 
+-uniform dmat4 model;
+-uniform dmat4 view;
+-uniform dmat4 projection;
++uniform mat4 model;
++uniform mat4 view;
++uniform mat4 projection;
+ uniform float time;
+ uniform int renderOption;
+ uniform vec2 posXThreshold;
+@@ -103,7 +103,7 @@ void main() {
+   }
+ 
+   // Apply camera transforms.
+-  dvec4 viewPosition = view * model * objectPosition;
++  vec4 viewPosition = view * model * objectPosition;
+   vec4 sunPosition = vec4(view * model * vec4(0.0f, 0.0f, 0.0f, 1.0f));
+ 
+   vs_starDistFromSun = safeLength(objectPosition);
+diff --git a/modules/galaxy/rendering/renderablegalaxy.cpp b/modules/galaxy/rendering/renderablegalaxy.cpp
+index b6ca4bbab3..8c8ba3cf0b 100644
+--- a/modules/galaxy/rendering/renderablegalaxy.cpp
++++ b/modules/galaxy/rendering/renderablegalaxy.cpp
+@@ -646,17 +646,23 @@ void RenderableGalaxy::renderPoints(const RenderData& data) {
+     glm::dmat4 cameraViewProjectionMatrix =
+         glm::dmat4(data.camera.projectionMatrix()) * data.camera.combinedViewMatrix();
+ 
+-    _pointsProgram->setUniform(_uniformCachePoints.modelMatrix, modelTransform);
++    _pointsProgram->setUniform(
++        _uniformCachePoints.modelMatrix,
++        static_cast<glm::mat4>(modelTransform)
++    );
+     _pointsProgram->setUniform(
+         _uniformCachePoints.cameraViewProjectionMatrix,
+-        cameraViewProjectionMatrix
++        static_cast<glm::mat4>(cameraViewProjectionMatrix)
+     );
+ 
+     glm::dvec3 eyePosition = glm::dvec3(
+         glm::inverse(data.camera.combinedViewMatrix()) *
+         glm::dvec4(0.0, 0.0, 0.0, 1.0)
+     );
+-    _pointsProgram->setUniform(_uniformCachePoints.eyePosition, eyePosition);
++    _pointsProgram->setUniform(
++        _uniformCachePoints.eyePosition,
++        static_cast<glm::vec3>(eyePosition)
++    );
+     _pointsProgram->setUniform(
+         _uniformCachePoints.opacityCoefficient,
+         _opacityCoefficient
+@@ -696,20 +702,29 @@ void RenderableGalaxy::renderBillboards(const RenderData& data) {
+     glm::dmat4 cameraViewProjectionMatrix =
+         glm::dmat4(data.camera.projectionMatrix()) * data.camera.combinedViewMatrix();
+ 
+-    _billboardsProgram->setUniform(_uniformCacheBillboards.modelMatrix, modelTransform);
++    _billboardsProgram->setUniform(
++        _uniformCacheBillboards.modelMatrix,
++        static_cast<glm::mat4>(modelTransform)
++    );
+     _billboardsProgram->setUniform(
+         _uniformCacheBillboards.cameraViewProjectionMatrix,
+-        cameraViewProjectionMatrix
++        static_cast<glm::mat4>(cameraViewProjectionMatrix)
+     );
+ 
+     glm::dvec3 eyePosition = glm::dvec3(
+         glm::inverse(data.camera.combinedViewMatrix()) *
+         glm::dvec4(0.0, 0.0, 0.0, 1.0)
+     );
+-    _billboardsProgram->setUniform(_uniformCacheBillboards.eyePosition, eyePosition);
++    _billboardsProgram->setUniform(
++        _uniformCacheBillboards.eyePosition,
++        static_cast<glm::vec3>(eyePosition)
++    );
+ 
+     glm::dvec3 cameraUp = data.camera.lookUpVectorWorldSpace();
+-    _billboardsProgram->setUniform(_uniformCacheBillboards.cameraUp, cameraUp);
++    _billboardsProgram->setUniform(
++        _uniformCacheBillboards.cameraUp,
++        static_cast<glm::vec3>(cameraUp)
++    );
+ 
+     ghoul::opengl::TextureUnit psfUnit;
+     psfUnit.activate();
+diff --git a/modules/galaxy/shaders/billboard_ge.glsl b/modules/galaxy/shaders/billboard_ge.glsl
+index 1da0df9b7f..09c825737c 100644
+--- a/modules/galaxy/shaders/billboard_ge.glsl
++++ b/modules/galaxy/shaders/billboard_ge.glsl
+@@ -37,21 +37,21 @@ out vec2 psfCoords;
+ flat out vec3 ge_color;
+ flat out float ge_screenSpaceDepth;
+ 
+-uniform dvec3 eyePosition;
+-uniform dvec3 cameraUp;
+-uniform dmat4 viewProjectionMatrix;
+-uniform dmat4 modelMatrix;
++uniform vec3 eyePosition;
++uniform vec3 cameraUp;
++uniform mat4 viewProjectionMatrix;
++uniform mat4 modelMatrix;
+ 
+-const double PARSEC = 3.08567756E16;
++const float PARSEC = 3.08567756E16;
+ 
+ 
+ void main() {
+   vs_position = gl_in[0].gl_Position;
+   ge_color = vs_color[0];
+ 
+-  double scaleMultiply = 8.0;
++  float scaleMultiply = 8.0;
+ 
+-  dvec4 dpos = dvec4(vs_position);
++  vec4 dpos = vec4(vs_position);
+   dpos.xyz *= scaleMultiply;
+   dpos = modelMatrix * dpos;
+   dpos /= PARSEC;
+@@ -60,27 +60,27 @@ void main() {
+ 
+   scaleMultiply *= 4.0;
+ 
+-  dvec3 normal = normalize(eyePosition - dpos.xyz);
+-  dvec3 newRight = normalize(cross(cameraUp, normal));
+-  dvec3 newUp = cross(normal, newRight);
+-  dvec3 scaledRight = scaleMultiply * newRight;
+-  dvec3 scaledUp = scaleMultiply * newUp;
++  vec3 normal = normalize(eyePosition - dpos.xyz);
++  vec3 newRight = normalize(cross(cameraUp, normal));
++  vec3 newUp = cross(normal, newRight);
++  vec3 scaledRight = scaleMultiply * newRight;
++  vec3 scaledUp = scaleMultiply * newUp;
+ 
+   vec4 bottomLeftVertex = z_normalization(
+-    vec4(viewProjectionMatrix * dvec4(dpos.xyz - scaledRight - scaledUp, dpos.w))
++    vec4(viewProjectionMatrix * vec4(dpos.xyz - scaledRight - scaledUp, dpos.w))
+   );
+ 
+   ge_screenSpaceDepth  = bottomLeftVertex.w;
+ 
+   vec4 topRightVertex = z_normalization(
+-    vec4(viewProjectionMatrix * dvec4(dpos.xyz + scaledUp + scaledRight, dpos.w))
++    vec4(viewProjectionMatrix * vec4(dpos.xyz + scaledUp + scaledRight, dpos.w))
+   );
+ 
+   vec4 bottomRightVertex = z_normalization(
+-    vec4(viewProjectionMatrix * dvec4(dpos.xyz + scaledRight - scaledUp, dpos.w))
++    vec4(viewProjectionMatrix * vec4(dpos.xyz + scaledRight - scaledUp, dpos.w))
+   );
+   vec4 topLeftVertex = z_normalization(
+-    vec4(viewProjectionMatrix * dvec4(dpos.xyz + scaledUp - scaledRight, dpos.w))
++    vec4(viewProjectionMatrix * vec4(dpos.xyz + scaledUp - scaledRight, dpos.w))
+   );
+ 
+   // Build primitive
+diff --git a/modules/galaxy/shaders/points_vs.glsl b/modules/galaxy/shaders/points_vs.glsl
+index f9db99919d..cdefcf940b 100644
+--- a/modules/galaxy/shaders/points_vs.glsl
++++ b/modules/galaxy/shaders/points_vs.glsl
+@@ -34,18 +34,18 @@ out vec3 vs_color;
+ out float vs_screenSpaceDepth;
+ out float vs_starBrightness;
+ 
+-uniform dmat4 viewProjectionMatrix;
+-uniform dmat4 modelMatrix;
+-uniform dvec3 eyePosition;
++uniform mat4 viewProjectionMatrix;
++uniform mat4 modelMatrix;
++uniform vec3 eyePosition;
+ 
+-const double PARSEC = 3.08567756E16;
++const float PARSEC = 3.08567756E16;
+ 
+ 
+ void main() {
+ 	vs_position = vec4(in_position, 1.0);
+-	dvec4 dpos = dvec4(vs_position);
++	vec4 dpos = vs_position;
+ 
+-	double distanceToStar = length(dpos.xyz - eyePosition);
++	float distanceToStar = length(dpos.xyz - eyePosition);
+ 	vs_starBrightness = clamp(float(8000.0 * PARSEC / distanceToStar), 0.0, 1.0);
+ 
+ 	dpos.xyz *= 8.0;
+diff --git a/modules/galaxy/shaders/raycasterbounds_vs.glsl b/modules/galaxy/shaders/raycasterbounds_vs.glsl
+index b3933e4ae6..d6d63fa4aa 100644
+--- a/modules/galaxy/shaders/raycasterbounds_vs.glsl
++++ b/modules/galaxy/shaders/raycasterbounds_vs.glsl
+@@ -32,12 +32,12 @@ out vec3 modelPosition;
+ out vec4 viewPosition;
+ 
+ uniform mat4 projectionTransform;
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+ 
+ 
+ void main() {
+   modelPosition = vertPosition.xyz;
+-  dvec4 vp = modelViewTransform * vertPosition;
++  vec4 vp = modelViewTransform * vertPosition;
+   viewPosition = vec4(vp);
+ 
+   gl_Position = z_normalization(vec4(projectionTransform * viewPosition));
+diff --git a/modules/globebrowsing/shaders/advanced_rings_vs.glsl b/modules/globebrowsing/shaders/advanced_rings_vs.glsl
+index fbf5ebb754..2e9c59d029 100644
+--- a/modules/globebrowsing/shaders/advanced_rings_vs.glsl
++++ b/modules/globebrowsing/shaders/advanced_rings_vs.glsl
+@@ -33,21 +33,21 @@ out vec2 vs_st;
+ out float vs_screenSpaceDepth;
+ out vec4 shadowCoords;
+ 
+-uniform dmat4 modelViewProjectionMatrix;
++uniform mat4 modelViewProjectionMatrix;
+ 
+ // ShadowMatrix is the matrix defined by:
+ // textureCoordsMatrix * projectionMatrix * combinedViewMatrix * modelMatrix
+ // where textureCoordsMatrix is just a scale and bias computation: [-1,1] to [0,1]
+-uniform dmat4 shadowMatrix;
++uniform mat4 shadowMatrix;
+ 
+ 
+ void main() {
+   vs_st = in_st;
+ 
+-  dvec4 positionClipSpace  = modelViewProjectionMatrix * dvec4(in_position, 0.0, 1.0);
++  vec4 positionClipSpace  = modelViewProjectionMatrix * vec4(in_position, 0.0, 1.0);
+   vec4 positionClipSpaceZNorm = z_normalization(vec4(positionClipSpace));
+ 
+-  shadowCoords = vec4(shadowMatrix * dvec4(in_position, 0.0, 1.0));
++  shadowCoords = vec4(shadowMatrix * vec4(in_position, 0.0, 1.0));
+   vs_screenSpaceDepth  = positionClipSpaceZNorm.w;
+   gl_Position = positionClipSpaceZNorm;
+ }
+diff --git a/modules/globebrowsing/shaders/geojson_points_gs.glsl b/modules/globebrowsing/shaders/geojson_points_gs.glsl
+index 9eda63fa98..adb01fd3fd 100644
+--- a/modules/globebrowsing/shaders/geojson_points_gs.glsl
++++ b/modules/globebrowsing/shaders/geojson_points_gs.glsl
+@@ -37,9 +37,9 @@ out vec4 vs_positionViewSpace;
+ flat out vec3 vs_normal;
+ 
+ // General settings
+-uniform dmat4 modelTransform;
+-uniform dmat4 viewTransform;
+-uniform dmat4 projectionTransform;
++uniform mat4 modelTransform;
++uniform mat4 viewTransform;
++uniform mat4 projectionTransform;
+ 
+ uniform float heightOffset;
+ uniform bool useHeightMapData;
+@@ -47,7 +47,7 @@ uniform bool useHeightMapData;
+ // Camera information
+ uniform vec3 cameraUp;
+ uniform vec3 cameraRight;
+-uniform dvec3 cameraPosition; // world coordinates
++uniform vec3 cameraPosition; // world coordinates
+ uniform vec3 cameraLookUp;
+ 
+ // Render mode
+@@ -74,16 +74,16 @@ const vec2 corners[4] = vec2[4](
+ void main() {
+   vec4 pos = gl_in[0].gl_Position;
+   vs_normal = normal[0];
+-  dvec4 dpos = dvec4(dvec3(pos.xyz), 1.0);
++  vec4 dpos = vec4(vec3(pos.xyz), 1.0);
+ 
+   // Offset position based on height information
+   if (length(pos.xyz) > 0) {
+-      dvec3 outDirection = normalize(dvec3(dpos));
++      vec3 outDirection = normalize(vec3(dpos));
+       float height = heightOffset;
+       if (useHeightMapData) {
+         height += dynamicHeight[0];
+       }
+-      dpos += dvec4(outDirection * double(height), 0.0);
++      dpos += vec4(outDirection * height, 0.0);
+   }
+   // World coordinates
+   dpos = modelTransform * dpos;
+@@ -111,10 +111,10 @@ void main() {
+     right = cross(up, worldNormal);
+   }
+ 
+-  dvec4 scaledRight = pointSize * dvec4(right, 0.0) * 0.5;
+-  dvec4 scaledUp = pointSize * dvec4(up, 0.0) * 0.5;
++  vec4 scaledRight = pointSize * vec4(right, 0.0) * 0.5;
++  vec4 scaledUp = pointSize * vec4(up, 0.0) * 0.5;
+ 
+-  dmat4 cameraViewProjectionMatrix = projectionTransform * viewTransform;
++  mat4 cameraViewProjectionMatrix = projectionTransform * viewTransform;
+ 
+   vec4 dposClip = vec4(cameraViewProjectionMatrix * dpos);
+   vec4 scaledRightClip = textureWidthFactor * vec4(cameraViewProjectionMatrix * scaledRight);
+diff --git a/modules/globebrowsing/shaders/geojson_vs.glsl b/modules/globebrowsing/shaders/geojson_vs.glsl
+index f414fac371..1a69ee704a 100644
+--- a/modules/globebrowsing/shaders/geojson_vs.glsl
++++ b/modules/globebrowsing/shaders/geojson_vs.glsl
+@@ -32,25 +32,25 @@ out float vs_depth;
+ out vec3 vs_normal;
+ out vec4 vs_positionViewSpace;
+ 
+-uniform dmat4 modelTransform;
+-uniform dmat4 viewTransform;
+-uniform dmat4 projectionTransform;
++uniform mat4 modelTransform;
++uniform mat4 viewTransform;
++uniform mat4 projectionTransform;
+ uniform mat3 normalTransform;
+ 
+ uniform float heightOffset;
+ uniform bool useHeightMapData;
+ 
+ void main() {
+-    dvec4 modelPos = dvec4(in_position, 1.0);
++    vec4 modelPos = vec4(in_position, 1.0);
+ 
+     // Offset model pos based on height info
+     if (length(in_position) > 0) {
+-        dvec3 outDirection = normalize(dvec3(in_position));
++        vec3 outDirection = normalize(vec3(in_position));
+         float height = heightOffset;
+         if (useHeightMapData) {
+           height += in_height;
+         }
+-        modelPos += dvec4(outDirection * double(height), 0.0);
++        modelPos += vec4(outDirection * height, 0.0);
+     }
+ 
+     vs_positionViewSpace = vec4(viewTransform * modelTransform * modelPos);
+diff --git a/modules/globebrowsing/shaders/globalrenderer_vs.glsl b/modules/globebrowsing/shaders/globalrenderer_vs.glsl
+index a7489eb96b..1b58c8f6a3 100644
+--- a/modules/globebrowsing/shaders/globalrenderer_vs.glsl
++++ b/modules/globebrowsing/shaders/globalrenderer_vs.glsl
+@@ -45,14 +45,14 @@ out vec3 positionCameraSpace;
+ 
+ #if USE_ECLIPSE_SHADOWS
+   out vec3 positionWorldSpace;
+-  uniform dmat4 modelTransform;
++  uniform mat4 modelTransform;
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if SHADOW_MAPPING_ENABLED
+   // ShadowMatrix is the matrix defined by:
+   // textureCoordsMatrix * projectionMatrix * combinedViewMatrix * modelMatrix
+   // where textureCoordsMatrix is just a scale and bias computation: [-1,1] to [0,1]
+-  uniform dmat4 shadowMatrix;
++  uniform mat4 shadowMatrix;
+   out vec4 shadowCoords;
+ #endif // SHADOW_MAPPING_ENABLED
+ 
+@@ -136,10 +136,10 @@ void main() {
+   positionCameraSpace = vec3(modelViewTransform * vec4(pair.position, 1.0));
+ 
+ #if USE_ECLIPSE_SHADOWS
+-  positionWorldSpace = vec3(modelTransform * dvec4(pair.position, 1.0));
++  positionWorldSpace = vec3(modelTransform * vec4(pair.position, 1.0));
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if SHADOW_MAPPING_ENABLED
+-  shadowCoords = vec4(shadowMatrix * dvec4(pair.position, 1.0));
++  shadowCoords = vec4(shadowMatrix * vec4(pair.position, 1.0));
+ #endif // SHADOW_MAPPING_ENABLED
+ }
+diff --git a/modules/globebrowsing/shaders/localrenderer_vs.glsl b/modules/globebrowsing/shaders/localrenderer_vs.glsl
+index 6586fc810a..b37fd5e06b 100644
+--- a/modules/globebrowsing/shaders/localrenderer_vs.glsl
++++ b/modules/globebrowsing/shaders/localrenderer_vs.glsl
+@@ -45,14 +45,14 @@ out vec3 positionCameraSpace;
+ 
+ #if USE_ECLIPSE_SHADOWS
+ out vec3 positionWorldSpace;
+-uniform dmat4 inverseViewTransform;
++uniform mat4 inverseViewTransform;
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if SHADOW_MAPPING_ENABLED
+   // ShadowMatrix is the matrix defined by:
+   // textureCoordsMatrix * projectionMatrix * combinedViewMatrix * modelMatrix
+   // where textureCoordsMatrix is just a scale and bias computation: [-1,1] to [0,1]
+-  uniform dmat4 shadowMatrix;
++  uniform mat4 shadowMatrix;
+   out vec4 shadowCoords;
+ #endif // SHADOW_MAPPING_ENABLED
+ 
+@@ -120,10 +120,10 @@ void main() {
+   positionCameraSpace = p;
+ 
+ #if USE_ECLIPSE_SHADOWS
+-  positionWorldSpace = vec3(inverseViewTransform * dvec4(p, 1.0));
++  positionWorldSpace = vec3(inverseViewTransform * vec4(p, 1.0));
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if SHADOW_MAPPING_ENABLED
+-  shadowCoords = vec4(shadowMatrix * dvec4(p, 1.0));
++  shadowCoords = vec4(shadowMatrix * vec4(p, 1.0));
+ #endif // SHADOW_MAPPING_ENABLED
+ }
+diff --git a/modules/globebrowsing/shaders/renderer_fs.glsl b/modules/globebrowsing/shaders/renderer_fs.glsl
+index 6914aa6a57..511fb04e40 100644
+--- a/modules/globebrowsing/shaders/renderer_fs.glsl
++++ b/modules/globebrowsing/shaders/renderer_fs.glsl
+@@ -77,10 +77,10 @@ uniform float zFightingPercentage;
+  ***** ALL CALCULATIONS FOR ECLIPSE ARE IN METERS AND IN WORLD SPACE SYSTEM ****
+  *******************************************************************************/
+ struct ShadowRenderingStruct {
+-  double xu, xp;
+-  double rs, rc;
+-  dvec3 sourceCasterVec;
+-  dvec3 casterPositionVec;
++  float xu, xp;
++  float rs, rc;
++  vec3 sourceCasterVec;
++  vec3 casterPositionVec;
+   bool isShadowing;
+ };
+ 
+@@ -92,17 +92,17 @@ uniform int shadows;
+ uniform bool hardShadows;
+ 
+ vec4 calcShadow(const ShadowRenderingStruct shadowInfoArray[NSEclipseShadows],
+-                const dvec3 position, const bool ground)
++                const vec3 position, const bool ground)
+ {
+   #for i in 0..#{nEclipseShadows}
+     if (shadowInfoArray[#{i}].isShadowing) {
+-      dvec3 pc = shadowInfoArray[#{i}].casterPositionVec - position;
+-      dvec3 sc_norm = shadowInfoArray[#{i}].sourceCasterVec;
+-      dvec3 pc_proj = dot(pc, sc_norm) * sc_norm;
+-      dvec3 d = pc - pc_proj;
++      vec3 pc = shadowInfoArray[#{i}].casterPositionVec - position;
++      vec3 sc_norm = shadowInfoArray[#{i}].sourceCasterVec;
++      vec3 pc_proj = dot(pc, sc_norm) * sc_norm;
++      vec3 d = pc - pc_proj;
+ 
+       float length_d = float(length(d));
+-      double length_pc_proj = length(pc_proj);
++      float length_pc_proj = length(pc_proj);
+ 
+       float r_p_pi = float(shadowInfoArray[#{i}].rc * (length_pc_proj + shadowInfoArray[#{i}].xp) / shadowInfoArray[#{i}].xp);
+       float r_u_pi = float(shadowInfoArray[#{i}].rc * (shadowInfoArray[#{i}].xu - length_pc_proj) / shadowInfoArray[#{i}].xu);
+@@ -212,7 +212,7 @@ Fragment getFragment() {
+ #endif // PERFORM_SHADING
+ 
+ #if USE_ECLIPSE_SHADOWS
+-  frag.color *= calcShadow(shadowDataArray, dvec3(positionWorldSpace), true);
++  frag.color *= calcShadow(shadowDataArray, vec3(positionWorldSpace), true);
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if USE_OVERLAY
+diff --git a/modules/globebrowsing/shaders/rings_geom_vs.glsl b/modules/globebrowsing/shaders/rings_geom_vs.glsl
+index f9c17918e7..2fd05671e9 100644
+--- a/modules/globebrowsing/shaders/rings_geom_vs.glsl
++++ b/modules/globebrowsing/shaders/rings_geom_vs.glsl
+@@ -32,13 +32,13 @@ layout(location = 1) in vec2 in_st;
+ out vec2 vs_st;
+ out float vs_screenSpaceDepth;
+ 
+-uniform dmat4 modelViewProjectionMatrix;
++uniform mat4 modelViewProjectionMatrix;
+ 
+ 
+ void main() {
+   vs_st = in_st;
+ 
+-  dvec4 positionClipSpace  = modelViewProjectionMatrix * dvec4(in_position, 0.0, 1.0);
++  vec4 positionClipSpace  = modelViewProjectionMatrix * vec4(in_position, 0.0, 1.0);
+   vec4 positionClipSpaceZNorm = z_normalization(vec4(positionClipSpace));
+   vs_screenSpaceDepth  = positionClipSpaceZNorm.w;
+   gl_Position = positionClipSpaceZNorm;
+diff --git a/modules/globebrowsing/shaders/rings_vs.glsl b/modules/globebrowsing/shaders/rings_vs.glsl
+index fbf5ebb754..2e9c59d029 100644
+--- a/modules/globebrowsing/shaders/rings_vs.glsl
++++ b/modules/globebrowsing/shaders/rings_vs.glsl
+@@ -33,21 +33,21 @@ out vec2 vs_st;
+ out float vs_screenSpaceDepth;
+ out vec4 shadowCoords;
+ 
+-uniform dmat4 modelViewProjectionMatrix;
++uniform mat4 modelViewProjectionMatrix;
+ 
+ // ShadowMatrix is the matrix defined by:
+ // textureCoordsMatrix * projectionMatrix * combinedViewMatrix * modelMatrix
+ // where textureCoordsMatrix is just a scale and bias computation: [-1,1] to [0,1]
+-uniform dmat4 shadowMatrix;
++uniform mat4 shadowMatrix;
+ 
+ 
+ void main() {
+   vs_st = in_st;
+ 
+-  dvec4 positionClipSpace  = modelViewProjectionMatrix * dvec4(in_position, 0.0, 1.0);
++  vec4 positionClipSpace  = modelViewProjectionMatrix * vec4(in_position, 0.0, 1.0);
+   vec4 positionClipSpaceZNorm = z_normalization(vec4(positionClipSpace));
+ 
+-  shadowCoords = vec4(shadowMatrix * dvec4(in_position, 0.0, 1.0));
++  shadowCoords = vec4(shadowMatrix * vec4(in_position, 0.0, 1.0));
+   vs_screenSpaceDepth  = positionClipSpaceZNorm.w;
+   gl_Position = positionClipSpaceZNorm;
+ }
+diff --git a/modules/globebrowsing/src/ringscomponent.cpp b/modules/globebrowsing/src/ringscomponent.cpp
+index 6e8a3af766..a7028abd6e 100644
+--- a/modules/globebrowsing/src/ringscomponent.cpp
++++ b/modules/globebrowsing/src/ringscomponent.cpp
+@@ -440,7 +440,7 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+         if (_isAdvancedTextureEnabled) {
+             _shader->setUniform(
+                 _uniformCacheAdvancedRings.modelViewProjectionMatrix,
+-                modelViewProjectionTransform
++                static_cast<glm::mat4>(modelViewProjectionTransform)
+             );
+             _shader->setUniform(_uniformCacheAdvancedRings.textureOffset, _offset);
+             _shader->setUniform(
+@@ -466,7 +466,7 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+             );
+             _shader->setUniform(
+                 _uniformCacheAdvancedRings.modelViewProjectionMatrix,
+-                modelViewProjectionTransform
++                static_cast<glm::mat4>(modelViewProjectionTransform)
+             );
+ 
+             ringTextureFwrdUnit.activate();
+@@ -510,7 +510,8 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+             // the light position.
+             _shader->setUniform(
+                 _uniformCacheAdvancedRings.shadowMatrix,
+-                shadowData.shadowMatrix * modelTransform
++                (static_cast<glm::mat4>(shadowData.shadowMatrix) *
++                 static_cast<glm::mat4>(modelTransform))
+             );
+ 
+             const glm::dmat4 camToObjectTransform = glm::inverse(
+@@ -542,7 +543,7 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+         else {
+             _shader->setUniform(
+                 _uniformCache.modelViewProjectionMatrix,
+-                modelViewProjectionTransform
++                static_cast<glm::mat4>(modelViewProjectionTransform)
+             );
+             _shader->setUniform(_uniformCache.textureOffset, _offset);
+             _shader->setUniform(_uniformCache.colorFilterValue, _colorFilter);
+@@ -564,7 +565,8 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+             // the light position.
+             _shader->setUniform(
+                 _uniformCache.shadowMatrix,
+-                shadowData.shadowMatrix * modelTransform
++                (static_cast<glm::mat4>(shadowData.shadowMatrix) *
++                 static_cast<glm::mat4>(modelTransform))
+             );
+ 
+             ghoul::opengl::TextureUnit shadowMapUnit;
+@@ -580,7 +582,7 @@ void RingsComponent::draw(const RenderData& data, RenderPass renderPass,
+     else if (renderPass == RenderPass::GeometryOnly) {
+         _geometryOnlyShader->setUniform(
+             _geomUniformCache.modelViewProjectionMatrix,
+-            modelViewProjectionTransform
++            static_cast<glm::mat4>(modelViewProjectionTransform)
+         );
+         _geometryOnlyShader->setUniform(_geomUniformCache.textureOffset, _offset);
+ 
+diff --git a/modules/space/rendering/renderableconstellationlines.cpp b/modules/space/rendering/renderableconstellationlines.cpp
+index 01529fad9d..df2f34e766 100644
+--- a/modules/space/rendering/renderableconstellationlines.cpp
++++ b/modules/space/rendering/renderableconstellationlines.cpp
+@@ -251,8 +251,8 @@ void RenderableConstellationLines::renderConstellations(const RenderData&,
+ 
+     _program->activate();
+ 
+-    _program->setUniform(_uniformCache.modelViewTransform, modelViewMatrix);
+-    _program->setUniform(_uniformCache.projectionTransform, projectionMatrix);
++    _program->setUniform(_uniformCache.modelViewTransform, static_cast<glm::mat4>(modelViewMatrix));
++    _program->setUniform(_uniformCache.projectionTransform, static_cast<glm::mat4>(projectionMatrix));
+     _program->setUniform(_uniformCache.opacity, opacity());
+ 
+     using ConstellationKeyValuePair = std::pair<const int, ConstellationLine>;
+diff --git a/modules/space/rendering/renderableorbitalkepler.cpp b/modules/space/rendering/renderableorbitalkepler.cpp
+index 1baa644886..98f3e1e969 100644
+--- a/modules/space/rendering/renderableorbitalkepler.cpp
++++ b/modules/space/rendering/renderableorbitalkepler.cpp
+@@ -269,9 +269,9 @@ void RenderableOrbitalKepler::render(const RenderData& data, RendererTasks&) {
+ 
+     _programObject->activate();
+     _programObject->setUniform(_uniformCache.opacity, opacity());
+-    _programObject->setUniform(_uniformCache.inGameTime, data.time.j2000Seconds());
++    _programObject->setUniform(_uniformCache.inGameTime, static_cast<float>(data.time.j2000Seconds()));
+ 
+-    _programObject->setUniform(_uniformCache.modelView, calcModelViewTransform(data));
++    _programObject->setUniform(_uniformCache.modelView, static_cast<glm::mat4>(calcModelViewTransform(data)));
+ 
+     // Because we want the property to work similar to the planet trails
+     const float fade = pow(_appearance.lineFade.maxValue() - _appearance.lineFade, 2.f);
+diff --git a/modules/space/rendering/renderablestars.cpp b/modules/space/rendering/renderablestars.cpp
+index 8207385ad8..51d58a8b60 100644
+--- a/modules/space/rendering/renderablestars.cpp
++++ b/modules/space/rendering/renderablestars.cpp
+@@ -1042,10 +1042,10 @@ void RenderableStars::render(const RenderData& data, RendererTasks&) {
+     glm::dvec3 eyePosition = glm::dvec3(
+         glm::inverse(data.camera.combinedViewMatrix()) * glm::dvec4(0.0, 0.0, 0.0, 1.0)
+     );
+-    _program->setUniform(_uniformCache.eyePosition, eyePosition);
++    _program->setUniform(_uniformCache.eyePosition, static_cast<glm::vec3>(eyePosition));
+ 
+     glm::dvec3 cameraUp = data.camera.lookUpVectorWorldSpace();
+-    _program->setUniform(_uniformCache.cameraUp, cameraUp);
++    _program->setUniform(_uniformCache.cameraUp, static_cast<glm::vec3>(cameraUp));
+ 
+     glm::dmat4 modelMatrix = calcModelTransform(data);
+ 
+@@ -1054,10 +1054,10 @@ void RenderableStars::render(const RenderData& data, RendererTasks&) {
+     glm::dmat4 cameraViewProjectionMatrix = projectionMatrix *
+                                             data.camera.combinedViewMatrix();
+ 
+-    _program->setUniform(_uniformCache.modelMatrix, modelMatrix);
++    _program->setUniform(_uniformCache.modelMatrix, static_cast<glm::mat4>(modelMatrix));
+     _program->setUniform(
+         _uniformCache.cameraViewProjectionMatrix,
+-        cameraViewProjectionMatrix
++        static_cast<glm::mat4>(cameraViewProjectionMatrix)
+     );
+     _program->setUniform(_uniformCache.colorOption, _colorOption);
+     _program->setUniform(_uniformCache.magnitudeExponent, _magnitudeExponent);
+diff --git a/modules/space/shaders/debrisViz_vs.glsl b/modules/space/shaders/debrisViz_vs.glsl
+index 601a33316a..cc5c70c590 100644
+--- a/modules/space/shaders/debrisViz_vs.glsl
++++ b/modules/space/shaders/debrisViz_vs.glsl
+@@ -34,9 +34,9 @@ out float viewSpaceDepth;
+ out float periodFraction;
+ out float offsetPeriods;
+ 
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+ uniform mat4 projectionTransform;
+-uniform double inGameTime;
++uniform float inGameTime;
+ 
+ 
+ void main() {
+@@ -53,9 +53,9 @@ void main() {
+ 
+   // calculate nr of periods, get fractional part to know where the vertex closest to the
+   // debris part is right now
+-  double nrOfRevolutions = (inGameTime - epoch) / period;
+-  double frac = double(int(nrOfRevolutions));
+-  double periodFractiond = nrOfRevolutions - frac;
++  float nrOfRevolutions = (inGameTime - epoch) / period;
++  float frac = float(int(nrOfRevolutions));
++  float periodFractiond = nrOfRevolutions - frac;
+   if (periodFractiond < 0.0) {
+     periodFractiond += 1.0;
+   }
+diff --git a/modules/space/shaders/fluxnodes_vs.glsl b/modules/space/shaders/fluxnodes_vs.glsl
+index 60db0de0a3..5f320d0271 100644
+--- a/modules/space/shaders/fluxnodes_vs.glsl
++++ b/modules/space/shaders/fluxnodes_vs.glsl
+@@ -77,7 +77,7 @@ uniform float   fluxColorAlpha;
+ uniform vec3    earthPos;
+ uniform float   distanceThreshold;
+ uniform float   proximityNodesSize;
+-uniform double  time;
++uniform float  time;
+ 
+ // Speicific uniforms for cameraperspective
+ uniform float maxNodeDistanceSize;
+diff --git a/modules/space/shaders/star_ge.glsl b/modules/space/shaders/star_ge.glsl
+index 4e3cba08fa..477e74c23a 100644
+--- a/modules/space/shaders/star_ge.glsl
++++ b/modules/space/shaders/star_ge.glsl
+@@ -40,17 +40,17 @@ flat out float ge_speed;
+ flat out float gs_screenSpaceDepth;
+ 
+ uniform float magnitudeExponent;
+-uniform dvec3 eyePosition;
+-uniform dvec3 cameraUp;
++uniform vec3 eyePosition;
++uniform vec3 cameraUp;
+ uniform int psfParamConf;
+ uniform float lumCent;
+ uniform float radiusCent;
+ uniform float brightnessCent;
+-uniform dmat4 cameraViewProjectionMatrix;
+-uniform dmat4 modelMatrix;
++uniform mat4 cameraViewProjectionMatrix;
++uniform mat4 modelMatrix;
+ 
+-const double PARSEC = 3.08567756E16;
+-//const double PARSEC = 3.08567782E16;
++const float PARSEC = 3.08567756E16;
++//const float PARSEC = 3.08567782E16;
+ 
+ // FRAGILE
+ // All of these values have to be synchronized with the values in the optionproperty
+@@ -71,45 +71,45 @@ float bvToKelvin(float bv) {
+   return 4600 * (1.0 / (tmp + 1.7) + 1.0 / (tmp + 0.62));
+ }
+ 
+-double scaleForApparentBrightness(dvec3 dpos, float luminance) {
++float scaleForApparentBrightness(vec3 dpos, float luminance) {
+   // Working like Partiview
+-  double pSize = pow(10, 29.0 + magnitudeExponent);
++  float pSize = pow(10, 29.0 + magnitudeExponent);
+   float luminosity = luminance * 10.0;
+-  double distanceToStar = length(dpos - eyePosition);
++  float distanceToStar = length(dpos - eyePosition);
+   return (pSize * luminosity) / distanceToStar;
+ }
+ 
+-double scaleForLuminositySize(float bv, float luminance, float absMagnitude) {
+-  double adjustedLuminance = luminance + 5E9;
++float scaleForLuminositySize(float bv, float luminance, float absMagnitude) {
++  float adjustedLuminance = luminance + 5E9;
+   float L_over_Lsun = pow(2.51, SunAbsMagnitude - absMagnitude);
+   float temperature = bvToKelvin(bv);
+   float relativeTemperature = SunTemperature / temperature;
+-  double starRadius = SunRadius * pow(relativeTemperature, 2.0) * sqrt(L_over_Lsun);
++  float starRadius = SunRadius * pow(relativeTemperature, 2.0) * sqrt(L_over_Lsun);
+   return (lumCent * adjustedLuminance + (radiusCent * starRadius)) * pow(10.0, magnitudeExponent);
+ }
+ 
+-double scaleForLuminositySizeAppBrightness(dvec3 dpos, float bv, float luminance, float absMagnitude) {
+-  double luminosity = double(1.0 - luminance);
+-  double distanceToStarInParsecs = trunc(length(dpos - eyePosition) / PARSEC);
+-  double apparentBrightness = luminosity / distanceToStarInParsecs;
++float scaleForLuminositySizeAppBrightness(vec3 dpos, float bv, float luminance, float absMagnitude) {
++  float luminosity = 1.0 - luminance;
++  float distanceToStarInParsecs = trunc(length(dpos - eyePosition) / PARSEC);
++  float apparentBrightness = luminosity / distanceToStarInParsecs;
+   float L_over_Lsun = pow(2.51, SunAbsMagnitude - absMagnitude);
+   float temperature = bvToKelvin(bv);
+   float relativeTemperature = SunTemperature / temperature;
+-  double starRadius = SunRadius * pow(relativeTemperature, 2.0) * sqrt(L_over_Lsun);
++  float starRadius = SunRadius * pow(relativeTemperature, 2.0) * sqrt(L_over_Lsun);
+ 
+-  double scaledLuminance = lumCent * (luminance + 5E9);
+-  double scaledStarRadius = radiusCent * starRadius;
+-  double scaledBrightness = brightnessCent * apparentBrightness * 5E15;
++  float scaledLuminance = lumCent * (luminance + 5E9);
++  float scaledStarRadius = radiusCent * starRadius;
++  float scaledBrightness = brightnessCent * apparentBrightness * 5E15;
+   return (scaledLuminance + scaledStarRadius + scaledBrightness) * pow(10.0, magnitudeExponent);
+ }
+ 
+-double scaleForAbsoluteMagnitude(float absMagnitude) {
++float scaleForAbsoluteMagnitude(float absMagnitude) {
+   return (-absMagnitude + 35) * pow(10.0, magnitudeExponent + 8.5);
+ }
+ 
+-double scaleForApparentMagnitude(dvec3 dpos, float absMag) {
+-  double distanceToStarInMeters = length(dpos - eyePosition);
+-  double distanceToCenterInMeters = length(eyePosition);
++float scaleForApparentMagnitude(vec3 dpos, float absMag) {
++  float distanceToStarInMeters = length(dpos - eyePosition);
++  float distanceToCenterInMeters = length(eyePosition);
+   float distanceToStarInParsecs = float(distanceToStarInMeters/PARSEC);
+   //float appMag = absMag + 5*log(distanceToStarInParsecs) - 5.0;
+   float appMag = absMag + 5.0 * (log(distanceToStarInParsecs/10.0)/log(2.0));
+@@ -126,7 +126,7 @@ double scaleForApparentMagnitude(dvec3 dpos, float absMag) {
+   // return pow(10.0, (appMag - absMag)*(1.0/5.0) + 1.0) * pow(10.0, magnitudeExponent + 3.f);
+ }
+ 
+-double scaleForDistanceModulus(float absMag) {
++float scaleForDistanceModulus(float absMag) {
+   return exp((-30.623 - absMag) * 0.462) * pow(10.0, magnitudeExponent + 12.5) * 2000;
+ }
+ 
+@@ -134,13 +134,13 @@ double scaleForDistanceModulus(float absMag) {
+ void main() {
+   vec3 pos = gl_in[0].gl_Position.xyz;
+   vs_position = pos; // in object space
+-  dvec4 dpos  = modelMatrix * dvec4(pos, 1.0);
++  vec4 dpos  = modelMatrix * vec4(pos, 1.0);
+ 
+   ge_bv = vs_bvLumAbsMagAppMag[0].x;
+   ge_velocity = vs_velocity[0];
+   ge_speed = vs_speed[0];
+ 
+-  double scaleMultiply = 1.0;
++  float scaleMultiply = 1.0;
+ 
+   if (psfParamConf == SizeCompositionOptionAppBrightness) {
+     float luminance = vs_bvLumAbsMagAppMag[0].y;
+@@ -177,26 +177,26 @@ void main() {
+     scaleMultiply = scaleForDistanceModulus(absMagnitude);
+   }
+ 
+-  dvec3 normal = eyePosition - dpos.xyz;
+-  dvec3 newRight = normalize(cross(cameraUp, normal));
+-  dvec3 newUp = normalize(cross(normal, newRight));
+-  dvec3 scaledRight = scaleMultiply * newRight;
+-  dvec3 scaledUp = scaleMultiply * newUp;
++  vec3 normal = eyePosition - dpos.xyz;
++  vec3 newRight = normalize(cross(cameraUp, normal));
++  vec3 newUp = normalize(cross(normal, newRight));
++  vec3 scaledRight = scaleMultiply * newRight;
++  vec3 scaledUp = scaleMultiply * newUp;
+ 
+   vec4 lowerLeft = z_normalization(
+-    vec4(cameraViewProjectionMatrix * dvec4(dpos.xyz - scaledRight - scaledUp, dpos.w))
++    vec4(cameraViewProjectionMatrix * vec4(dpos.xyz - scaledRight - scaledUp, dpos.w))
+   );
+ 
+   vec4 upperRight = z_normalization(
+-    vec4(cameraViewProjectionMatrix * dvec4(dpos.xyz + scaledUp + scaledRight, dpos.w))
++    vec4(cameraViewProjectionMatrix * vec4(dpos.xyz + scaledUp + scaledRight, dpos.w))
+   );
+ 
+   vec4 lowerRight = z_normalization(
+-    vec4(cameraViewProjectionMatrix * dvec4(dpos.xyz + scaledRight - scaledUp, dpos.w))
++    vec4(cameraViewProjectionMatrix * vec4(dpos.xyz + scaledRight - scaledUp, dpos.w))
+   );
+ 
+   vec4 upperLeft = z_normalization(
+-    vec4(cameraViewProjectionMatrix * dvec4(dpos.xyz + scaledUp - scaledRight, dpos.w))
++    vec4(cameraViewProjectionMatrix * vec4(dpos.xyz + scaledUp - scaledRight, dpos.w))
+   );
+ 
+   gs_screenSpaceDepth = lowerLeft.w;
+diff --git a/modules/webbrowser/CMakeLists.txt b/modules/webbrowser/CMakeLists.txt
+index 241d8bfd21..31a1fad6a8 100644
+--- a/modules/webbrowser/CMakeLists.txt
++++ b/modules/webbrowser/CMakeLists.txt
+@@ -22,14 +22,22 @@
+ # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                          #
+ ##########################################################################################
+ 
++# wanted by CEF
++set(PROJECT_ARCH "x86_64")
++
++if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
++  if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
++    set(CEF_PLATFORM "macosarm64" PARENT_SCOPE)
++  endif ()
++endif ()
++
++
+ include(${PROJECT_SOURCE_DIR}/support/cmake/module_definition.cmake)
+ include(cmake/webbrowser_helpers.cmake)
+ 
+ set(WEBBROWSER_MODULE_NAME WebBrowser)
+ set(WEBBROWSER_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "WEBBROWSER_MODULE_PATH")
+ 
+-# wanted by CEF
+-set(PROJECT_ARCH "x86_64")
+ 
+ ##########################################################################################
+ # Download CEF
+@@ -48,7 +56,7 @@ set_property(GLOBAL PROPERTY OS_FOLDERS ON)
+ cmake_policy(SET CMP0074 NEW)
+ 
+ # Specify the CEF distribution version.
+-set(CEF_VERSION "102.0.10+gf249b2e+chromium-102.0.5005.115")
++set(CEF_VERSION "115.3.15+g21130e0+chromium-115.0.5790.173")
+ 
+ # CEF Sandbox is not working with the latest Visual Studio, so we disable it for now.
+ if (WIN32 OR UNIX)
+diff --git a/modules/webbrowser/cmake/cef_support.cmake b/modules/webbrowser/cmake/cef_support.cmake
+index 305bfc6485..2f27559fbc 100644
+--- a/modules/webbrowser/cmake/cef_support.cmake
++++ b/modules/webbrowser/cmake/cef_support.cmake
+@@ -33,7 +33,11 @@
+ 
+ function(set_current_cef_build_platform)
+   if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+-    set(CEF_PLATFORM "macosx64" PARENT_SCOPE)
++    if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
++      set(CEF_PLATFORM "macosarm64" PARENT_SCOPE)
++    else ()
++      set(CEF_PLATFORM "macosx64" PARENT_SCOPE)
++    endif ()
+   elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+     if (CMAKE_SIZEOF_VOID_P MATCHES 8)
+       set(CEF_PLATFORM "linux64" PARENT_SCOPE)
+diff --git a/modules/webbrowser/src/eventhandler.cpp b/modules/webbrowser/src/eventhandler.cpp
+index e6ca44a97e..887ba967dc 100644
+--- a/modules/webbrowser/src/eventhandler.cpp
++++ b/modules/webbrowser/src/eventhandler.cpp
+@@ -406,7 +406,7 @@ bool EventHandler::charCallback(unsigned int charCode, KeyModifier modifier) {
+     keyEvent.windows_key_code = mapFromGlfwToWindows(Key(charCode));
+     keyEvent.character = mapFromGlfwToCharacter(Key(charCode));
+     keyEvent.native_key_code = mapFromGlfwToNative(Key(charCode));
+-    keyEvent.modifiers = static_cast<uint32>(modifier);
++    keyEvent.modifiers = static_cast<uint32_t>(modifier);
+     keyEvent.type = KEYEVENT_CHAR;
+ 
+     return _browserInstance->sendKeyEvent(keyEvent);
+@@ -443,7 +443,7 @@ bool EventHandler::specialKeyEvent(Key key, KeyModifier mod, KeyAction action) {
+                 keyEvent.windows_key_code = mapFromGlfwToWindows(Key(45));
+                 keyEvent.character = mapFromGlfwToCharacter(Key(45));
+                 keyEvent.native_key_code = mapFromGlfwToNative(Key(45));
+-                keyEvent.modifiers = static_cast<uint32>(mod);
++                keyEvent.modifiers = static_cast<uint32_t>(mod);
+                 keyEvent.type = keyEventType(action);
+                 _browserInstance->sendKeyEvent(keyEvent);
+                 return true;
+@@ -454,7 +454,7 @@ bool EventHandler::specialKeyEvent(Key key, KeyModifier mod, KeyAction action) {
+             keyEvent.windows_key_code = mapFromGlfwToWindows(Key::KeypadDecimal);
+             keyEvent.character = mapFromGlfwToCharacter(Key::KeypadDecimal);
+             keyEvent.native_key_code = mapFromGlfwToNative(Key::KeypadDecimal);
+-            keyEvent.modifiers = static_cast<uint32>(mod);
++            keyEvent.modifiers = static_cast<uint32_t>(mod);
+             keyEvent.type = keyEventType(action);
+             _browserInstance->sendKeyEvent(keyEvent);
+             return true;
+diff --git a/modules/webgui/CMakeLists.txt b/modules/webgui/CMakeLists.txt
+index 94b5a7c2cd..069951b658 100644
+--- a/modules/webgui/CMakeLists.txt
++++ b/modules/webgui/CMakeLists.txt
+@@ -40,7 +40,8 @@ source_group("Source Files" FILES ${OPENSPACE_SOURCE_FILES})
+ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+ 
+ # Specify the NodeJs distribution version.
+-set(NODEJS_VERSION "8.11.4")
++#set(NODEJS_VERSION "8.11.4")
++set(NODEJS_VERSION "16.20.2")
+ 
+ include(nodejs_support)
+ DownloadNodeJs("${NODEJS_VERSION}" "${CMAKE_CURRENT_SOURCE_DIR}/ext/nodejs")
+diff --git a/modules/webgui/cmake/nodejs_support.cmake b/modules/webgui/cmake/nodejs_support.cmake
+index bb1a3d6c5d..2958d8a1cb 100644
+--- a/modules/webgui/cmake/nodejs_support.cmake
++++ b/modules/webgui/cmake/nodejs_support.cmake
+@@ -33,7 +33,14 @@ function(DownloadNodeJs version download_dir)
+     set(path "v${version}/win-x64/${filename}")
+   endif ()
+   if (APPLE)
+-    set(basename "node-v${version}-darwin-x64")
++
++    if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
++      set(basename "node-v${version}-darwin-arm64")
++    else ()
++      set(basename "node-v${version}-darwin-x64")
++    endif ()
++
++
+     set(filename "${basename}.tar.gz")
+     set(path "v${version}/${filename}")
+   endif ()
+diff --git a/openspace.cfg b/openspace.cfg
+index 9d39a87a04..435bd8b62a 100644
+--- a/openspace.cfg
++++ b/openspace.cfg
+@@ -61,7 +61,7 @@ SGCTConfig = sgct.config.single{vsync=false}
+ 
+ -- Variable: Profile
+ -- Sets the profile that should be loaded by OpenSpace.
+-Profile = "default"
++Profile = "applesilicon"
+ -- Profile = "default_full"
+ -- Profile = "gaia"
+ -- Profile = "insight"
+@@ -132,8 +132,8 @@ ModuleConfigurations = {
+     Sync = {
+         SynchronizationRoot = "${SYNC}",
+         HttpSynchronizationRepositories = {
+-            "http://data.openspaceproject.com/request"
+-            -- "http://openspace.sci.utah.edu/request"
++            -- "http://data.openspaceproject.com/request"
++            "http://openspace.sci.utah.edu/request"
+             -- "http://localhost:8100/request"
+         }
+     },
