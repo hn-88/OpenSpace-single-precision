@@ -62,10 +62,10 @@ jobs:
       run : |
         Copy-Item -Verbose "ghoul-patches/uniform_conversion.h" "$env:openSpaceHome/ext/ghoul/src/opengl/uniform_conversion.h"
         Copy-Item -Verbose "ghoul-patches/ghoul-src-opengl-programobject.cpp" "$env:openSpaceHome/ext/ghoul/src/opengl/programobject.cpp"
-        Copy-Item -Verbose "diff-files/smart-patcher.py" "$env:openSpaceHome/smart-patcher.py"
+        Copy-Item -Verbose "diff-files/smart_patcher.py" "$env:openSpaceHome/smart_patcher.py"
         Copy-Item -Verbose "diff-files/applesilicon.diffedited.txt" "$env:openSpaceHome/applesilicon.diffedited.txt"
         cd "$env:openSpaceHome"
-        python smart-patcher.py applesilicon.diffedited.txt
+        python smart_patcher.py applesilicon.diffedited.txt
 
 
     - name: Configure CMake
