@@ -1876,3 +1876,23 @@ index e6ca44a97e..887ba967dc 100644
              keyEvent.type = keyEventType(action);
              _browserInstance->sendKeyEvent(keyEvent);
              return true;
+diff --git a/modules/base/rendering/pointcloud/renderablepointcloud.cpp b/modules/base/rendering/pointcloud/renderablepointcloud.cpp
+index e6ca44a97e..887ba967dc 100644
+--- a/modules/base/rendering/pointcloud/renderablepointcloud.cpp
++++ b/modules/base/rendering/pointcloud/renderablepointcloud.cpp
+@
+-_program->setUniform(_uniformCache.modelMatrix, modelMatrix);
++_program->setUniform(_uniformCache.modelMatrix, glm::mat4(modelMatrix));
+@
+-    _program->setUniform(
+-        _uniformCache.cameraViewMatrix,
+-        data.camera.combinedViewMatrix()
+-    );
++    _program->setUniform(
++        _uniformCache.cameraViewMatrix,
++        glm::mat4(data.camera.combinedViewMatrix())
++    );
+@
+-glm::dmat4(data.camera.projectionMatrix())
++glm::mat4(data.camera.projectionMatrix())
+@
