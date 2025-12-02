@@ -1625,10 +1625,13 @@ index 8207385ad8..51d58a8b60 100644
 --- a/modules/space/rendering/renderablestars.cpp
 +++ b/modules/space/rendering/renderablestars.cpp
 @@ -1042,10 +1042,10 @@ void RenderableStars::render(const RenderData& data, RendererTasks&) {
-     glm::dvec3 eyePosition = glm::dvec3(
-         glm::inverse(data.camera.combinedViewMatrix()) * glm::dvec4(0.0, 0.0, 0.0, 1.0)
-     );
+-     glm::dvec3 eyePosition = glm::dvec3(
+-         glm::inverse(data.camera.combinedViewMatrix()) * glm::dvec4(0.0, 0.0, 0.0, 1.0)
+-     );
 -    _program->setUniform(_uniformCache.eyePosition, eyePosition);
++     glm::vec3 eyePosition = static_cast<glm::vec3>(
++         glm::inverse(data.camera.combinedViewMatrix()) * glm::dvec4(0.0, 0.0, 0.0, 1.0)
++     );
 +    _program->setUniform(_uniformCache.eyePosition, static_cast<glm::vec3>(eyePosition));
  
      glm::dvec3 cameraUp = data.camera.lookUpVectorWorldSpace();
