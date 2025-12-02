@@ -1,0 +1,67 @@
+name: windows-patch-setattribute-onlygrep
+
+on: 
+  workflow_dispatch:
+  
+  #schedule:
+  #  - cron: "0 1 * * *"   # runs daily at 01:00 UTC
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  # This yml is copied from https://github.com/hn-88/OCVWarp/blob/master/.github/workflows/cmake-nix.yml
+  # and modified.
+  BUILD_TYPE: RelWithDebInfo
+  OPENSPACE_VERSION: "0.21.3+"
+  openSpaceHome: ${{ github.workspace }}/source/OpenSpace
+  QT_DIR: C:/Qt/6.2.0/msvc2019_64
+  QT6_DIR: C:/Qt/6.2.0/msvc2019_64
+  CMAKE_PREFIX_PATH: C:/Qt/6.2.0/msvc2019_64/lib/cmake
+  buildConfig: RelWithDebInfo
+  
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+  
+    - name: get openspace code for a particular release
+      # https://docs.openspaceproject.com/releases-v0.20/contribute/development/compiling/ubuntu.html
+      run: |
+        git clone --recursive https://github.com/OpenSpace/OpenSpace $env:openSpaceHome
+        cd $env:openSpaceHome
+        git checkout "master" --recurse-submodules
+        git submodule update --init --recursive
+        mkdir build
+        cd build
+        
+
+    - name: Set Boost environment variables
+      run: |
+        echo "BOOST_ROOT=C:\tools\boost_1_85_0" >> $env:GITHUB_ENV
+        echo "BOOST_INCLUDEDIR=C:\tools\boost_1_85_0" >> $env:GITHUB_ENV
+        echo "BOOST_LIBRARYDIR=C:\tools\boost_1_85_0\lib64-msvc-14.3" >> $env:GITHUB_ENV
+
+    - name: Patches
+      run : |
+        Copy-Item -Verbose "ghoul-patches/uniform_conversion.h" "$env:openSpaceHome/ext/ghoul/src/opengl/uniform_conversion.h"
+        Copy-Item -Verbose "ghoul-patches/ghoul-src-opengl-programobject.cpp" "$env:openSpaceHome/ext/ghoul/src/opengl/programobject.cpp"
+        Copy-Item -Verbose "diff-files/smart_patcher.py" "$env:openSpaceHome/smart_patcher.py"
+        Copy-Item -Verbose "diff-files/applesilicon.diffedited.txt" "$env:openSpaceHome/applesilicon.diffedited.txt"
+        cd "$env:openSpaceHome"
+        python smart_patcher.py applesilicon.diffedited.txt
+
+
+    - name: run grep
+      shell: bash
+      run: |
+        cd "$env:openSpaceHome"
+        grep -rn "eyePosition" --include="*.cpp" --include="*.h"
+
+
+  
+    
