@@ -59,7 +59,7 @@ jobs:
     - name: run grep
       shell: bash
       run: |
-        cd "$env:openSpaceHome"
+        cd ${{ github.workspace }}/source/OpenSpace
         grep -rn "eyePosition" --include="*.cpp" --include="*.h"
 
 
