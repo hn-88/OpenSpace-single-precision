@@ -63,6 +63,8 @@ jobs:
         ls /*
         cd source/OpenSpace
         grep -rn "eyePosition" --include="*.cpp" --include="*.h"
+        echo "now inside renderablestars.cpp"
+        grep -n "setUniform.*_uniformCache" modules/space/rendering/renderablestars.cpp
 
 
   
