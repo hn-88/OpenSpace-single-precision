@@ -277,6 +277,84 @@ index 9724972f3e..b749c3e1dc 100644
  }
  
  void AtmosphereDeferredcaster::setOpacity(float opacity) {
+@@ -351,13 +351,15 @@
+ 
+         // Object Space
+         const glm::dmat4 invModelMatrix = glm::inverse(_modelTransform);
+-        program.setUniform(_uniformCache.inverseModelTransformMatrix, invModelMatrix);
+-        program.setUniform(_uniformCache.modelTransformMatrix, _modelTransform);
++        // Cast to float (mat4)
++        program.setUniform(_uniformCache.inverseModelTransformMatrix, glm::mat4(invModelMatrix));
++        program.setUniform(_uniformCache.modelTransformMatrix, glm::mat4(_modelTransform));
+ 
+         const glm::dmat4 viewToWorld = glm::inverse(data.camera.combinedViewMatrix());
+ 
+         // Eye Space to World Space
+-        program.setUniform(_uniformCache.viewToWorldMatrix, viewToWorld);
++        // Cast to float (mat4)
++        program.setUniform(_uniformCache.viewToWorldMatrix, glm::mat4(viewToWorld));
+ 
+         // Projection to Eye Space
+         const glm::dmat4 dInvProj = glm::inverse(
+@@ -366,14 +368,16 @@
+ 
+         const glm::dmat4 invWholePipeline = invModelMatrix * viewToWorld * dInvProj;
+ 
++        // Cast to float (mat4)
+         program.setUniform(
+             _uniformCache.projectionToModelTransformMatrix,
+-            invWholePipeline
++            glm::mat4(invWholePipeline)
+         );
+ 
+         const glm::dvec4 camPosObjCoords =
+             invModelMatrix * glm::dvec4(data.camera.eyePositionVec3(), 1.0);
+-        program.setUniform(_uniformCache.camPosObj, glm::dvec3(camPosObjCoords));
++        // Cast to float (vec3)
++        program.setUniform(_uniformCache.camPosObj, glm::vec3(camPosObjCoords));
+ 
+         // For the lighting we use the provided node, or the Sun
+         SceneGraphNode* node =
+@@ -389,7 +393,8 @@
+         }
+ 
+         // Sun Position in Object Space
+-        program.setUniform(_uniformCache.sunDirectionObj, glm::normalize(sunPosObj));
++        // Cast to float (vec3)
++        program.setUniform(_uniformCache.sunDirectionObj, glm::normalize(glm::vec3(sunPosObj)));
+ 
+         // Shadow calculations..
+         _shadowDataArrayCache.clear();
+@@ -487,16 +492,17 @@
+             program.setUniform(_uniformNameBuffer, sd.isShadowing);
+ 
+             if (sd.isShadowing) {
++                // Cast all doubles to floats for Uniforms
+                 std::strcpy(bf, "].xp\0");
+-                program.setUniform(_uniformNameBuffer, sd.penumbra);
++                program.setUniform(_uniformNameBuffer, static_cast<float>(sd.penumbra));
+                 std::strcpy(bf, "].xu\0");
+-                program.setUniform(_uniformNameBuffer, sd.umbra);
++                program.setUniform(_uniformNameBuffer, static_cast<float>(sd.umbra));
+                 std::strcpy(bf, "].rc\0");
+-                program.setUniform(_uniformNameBuffer, sd.radiusCaster);
++                program.setUniform(_uniformNameBuffer, static_cast<float>(sd.radiusCaster));
+                 std::strcpy(bf, "].sourceCasterVec\0");
+-                program.setUniform(_uniformNameBuffer, sd.sourceCasterVec);
++                program.setUniform(_uniformNameBuffer, glm::vec3(sd.sourceCasterVec));
+                 std::strcpy(bf, "].casterPositionVec\0");
+-                program.setUniform(_uniformNameBuffer, sd.casterPositionVec);
++                program.setUniform(_uniformNameBuffer, glm::vec3(sd.casterPositionVec));
+             }
+             counter++;
+         }
+@@ -1179,4 +1185,4 @@
+     prg.setUniform("dhdH", dminT, dH, dminG, dh);
+ }
+ 
+-} // namespace openspace
++} // namespace openspace
+\ No newline at end of file
 diff --git a/modules/atmosphere/rendering/atmospheredeferredcaster.h b/modules/atmosphere/rendering/atmospheredeferredcaster.h
 index d5e5960e2a..651a8a7d09 100644
 --- a/modules/atmosphere/rendering/atmospheredeferredcaster.h
