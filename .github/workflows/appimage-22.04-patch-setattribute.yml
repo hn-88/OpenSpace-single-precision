@@ -1,4 +1,4 @@
-name: patch-setattribute-linux
+name: appimage-22.04-patch-setattribute
 
 on: workflow_dispatch
 
@@ -12,7 +12,7 @@ env:
   SCCACHE_CACHE_SIZE: 5G
   CMAKE_C_COMPILER_LAUNCHER: sccache
   CMAKE_CXX_COMPILER_LAUNCHER: sccache
-  OPENSPACE_VERSION: "0.21.2plus"
+  OPENSPACE_VERSION: "0.21.3plus"
   APPIMAGE_VERSION: "1"
   # COMMIT_HASH: "5e3a972767fd515f725f97cfa280da79b1968047"
   COMMIT_HASH: "master"
@@ -65,13 +65,15 @@ jobs:
         sudo apt-get install libasound2 libasound2-data libasound2-plugins
 
     
-    - name: Run the git patches
+    - name: Run the patches
       run: | 
         openSpaceHome="$HOME/source/OpenSpace"
         cp -v ghoul-patches/* "$openSpaceHome"
+        cp -v diff-files/* "$openSpaceHome"
         cd "$openSpaceHome"
         mv -v uniform_conversion.h ext/ghoul/src/opengl/uniform_conversion.h
         mv -v ghoul-src-opengl-programobject.cpp ext/ghoul/src/opengl/programobject.cpp
+        python smart_patcher.py applesilicon.diffedited.txt
 
     - name: Enable sccache
       uses: mozilla-actions/sccache-action@v0.0.9
