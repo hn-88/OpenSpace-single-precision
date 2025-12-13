@@ -1808,9 +1808,7 @@ index 4e3cba08fa..477e74c23a 100644
 +uniform mat4 modelMatrix;
  
 -const double PARSEC = 3.08567756E16;
--//const double PARSEC = 3.08567782E16;
 +const float PARSEC = 3.08567756E16;
-+//const float PARSEC = 3.08567782E16;
  
  // FRAGILE
  // All of these values have to be synchronized with the values in the optionproperty
