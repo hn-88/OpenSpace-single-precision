@@ -1445,8 +1445,8 @@ index a7489eb96b..1b58c8f6a3 100644
  
  #if USE_ECLIPSE_SHADOWS
    out vec3 positionWorldSpace;
--  uniform dmat4 modelTransform;
-+  uniform mat4 modelTransform;
+-uniform dmat4 modelTransform;
++uniform mat4 modelTransform;
  #endif // USE_ECLIPSE_SHADOWS
  
  #if SHADOW_MAPPING_ENABLED
@@ -1462,8 +1462,8 @@ index a7489eb96b..1b58c8f6a3 100644
    positionCameraSpace = vec3(modelViewTransform * vec4(pair.position, 1.0));
  
  #if USE_ECLIPSE_SHADOWS
--  positionWorldSpace = vec3(modelTransform * dvec4(pair.position, 1.0));
-+  positionWorldSpace = vec3(modelTransform * vec4(pair.position, 1.0));
+-positionWorldSpace = vec3(modelTransform * dvec4(pair.position, 1.0));
++positionWorldSpace = vec3(modelTransform * vec4(pair.position, 1.0));
  #endif // USE_ECLIPSE_SHADOWS
  
  #if SHADOW_MAPPING_ENABLED
