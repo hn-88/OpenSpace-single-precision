@@ -1480,7 +1480,9 @@ index 6586fc810a..b37fd5e06b 100644
  #if USE_ECLIPSE_SHADOWS
  out vec3 positionWorldSpace;
 -uniform dmat4 inverseViewTransform;
+-uniform dmat4 modelTransform;
 +uniform mat4 inverseViewTransform;
++uniform mat4 modelTransform;
  #endif // USE_ECLIPSE_SHADOWS
  
  #if SHADOW_MAPPING_ENABLED
