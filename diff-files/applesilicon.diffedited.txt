@@ -1994,73 +1994,73 @@ index e6ca44a97e..887ba967dc 100644
 @@ 
 -uniform double time;
 +uniform float time;
-@@
+@@ 
 -bool isPartOfParticle(double time, int vertexId, int particleSize, int particleSpeed,
 +bool isPartOfParticle(float time, int vertexId, int particleSize, int particleSpeed,
-@@
+@@ 
 -int modulusResult = int(double(particleSpeed) * time + vertexId) % particleSpacing;
 +int modulusResult = int(float(particleSpeed) * time + vertexId) % particleSpacing;
 diff --git a/modules/galaxy/shaders/points_vs.glsl b/modules/galaxy/shaders/points_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/galaxy/shaders/points_vs.glsl
 +++ b/modules/galaxy/shaders/points_vs.glsl
-@@
+@@ 
 -dvec4 dpos = dvec4(vs_position);
 +vec4 dpos = vec4(vs_position);
-@@
+@@ 
 -double distanceToStar = length(dpos.xyz - eyePosition);
 +float distanceToStar = length(dpos.xyz - eyePosition);
 diff --git a/modules/globebrowsing/shaders/localrenderer_vs.glsl b/modules/globebrowsing/shaders/localrenderer_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/globebrowsing/shaders/localrenderer_vs.glsl
 +++ b/modules/globebrowsing/shaders/localrenderer_vs.glsl
-@@
+@@ 
 -posObjSpace = vec3(inverseViewTransform * dvec4(p, 1.0));
 +posObjSpace = vec3(inverseViewTransform * vec4(p, 1.0));
-@@
+@@ 
 -positionWorldSpace = vec3(modelTransform * dvec4(p, 1.0));
 +positionWorldSpace = vec3(modelTransform * vec4(p, 1.0));
 diff --git a/modules/gaia/shaders/gaia_ssbo_vs.glsl b/modules/gaia/shaders/gaia_ssbo_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/gaia/shaders/gaia_ssbo_vs.glsl
 +++ b/modules/gaia/shaders/gaia_ssbo_vs.glsl
-@@
+@@ 
 -dvec4 viewPosition = view * model * objectPosition;
 +vec4 viewPosition = view * model * objectPosition;
-@@
+@@ 
 -vec4 sunPosition = vec4(view * model * dvec4(0.0, 0.0, 0.0, 1.0));
 +vec4 sunPosition = vec4(view * model * vec4(0.0, 0.0, 0.0, 1.0));
 diff --git a/modules/space/shaders/travelspeed_vs.glsl b/modules/space/shaders/travelspeed_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/space/shaders/travelspeed_vs.glsl
 +++ b/modules/space/shaders/travelspeed_vs.glsl
-@@
+@@ 
 -vs_positionViewSpace = vec4(modelViewTransform * dvec4(in_position, 1.0));
 +vs_positionViewSpace = vec4(modelViewTransform * vec4(in_position, 1.0));
 diff --git a/modules/space/shaders/travelspeed_vs.glsl b/modules/space/shaders/travelspeed_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/space/shaders/travelspeed_vs.glsl
 +++ b/modules/space/shaders/travelspeed_vs.glsl
-@@
+@@ 
 -vs_positionViewSpace = vec4(modelViewTransform * dvec4(in_position, 1.0));
 +vs_positionViewSpace = vec4(modelViewTransform * vec4(in_position, 1.0));
 diff --git a/modules/space/shaders/constellationlines_vs.glsl b/modules/space/shaders/constellationlines_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/space/shaders/constellationlines_vs.glsl
 +++ b/modules/space/shaders/constellationlines_vs.glsl
-@@
+@@ 
 -uniform dmat4 modelViewTransform;
 +uniform mat4 modelViewTransform;
-@@
+@@ 
 -uniform dmat4 projectionTransform;
 +uniform mat4 projectionTransform;
-@@
+@@ 
 -dvec4 positionViewSpace = modelViewTransform * dvec4(in_position, 1.0);
 +vec4 positionViewSpace = modelViewTransform * vec4(in_position, 1.0);
 diff --git a/modules/space/shaders/star_vs.glsl b/modules/space/shaders/star_vs.glsl
 index e6ca44a97e..887ba967dc 100644
 --- a/modules/space/shaders/star_vs.glsl
 +++ b/modules/space/shaders/star_vs.glsl
-@@
+@@ 
 -dvec3 offsetInParsec = dvec3(in_velocity) * double(diffTime) * 1000.0;
 +vec3 offsetInParsec = vec3(in_velocity) * float(diffTime) * 1000.0;
