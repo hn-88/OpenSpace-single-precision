@@ -2064,3 +2064,154 @@ index e6ca44a97e..887ba967dc 100644
 @@ 
 -dvec3 offsetInParsec = dvec3(in_velocity) * double(diffTime) * 1000.0;
 +vec3 offsetInParsec = vec3(in_velocity) * float(diffTime) * 1000.0;
+diff --git a/modules/fieldlinessequence/shaders/fieldlinessequence_vs.glsl b/modules/fieldlinessequence/shaders/fieldlinessequence_vs.glsl
+index xxxx..xxxx 100644
+--- a/modules/fieldlinessequence/shaders/fieldlinessequence_vs.glsl
++++ b/modules/fieldlinessequence/shaders/fieldlinessequence_vs.glsl
+@@ 
+-  //vs_gPosition = vec4(modelViewTransform * dvec4(in_point_position, 1));
++  //vs_gPosition = vec4(modelViewTransform * vec4(in_point_position, 1));
+
+diff --git a/modules/space/shaders/keplerpoints_vs.glsl b/modules/space/shaders/keplerpoints_vs.glsl
+index xxxx..xxxx 100644
+--- a/modules/space/shaders/keplerpoints_vs.glsl
++++ b/modules/space/shaders/keplerpoints_vs.glsl
+@@ 
+-layout (location = 1) in dvec3 orbitData; // 1: timeOffset, 2: epoch, 3: period
++layout (location = 1) in vec3 orbitData; // 1: timeOffset, 2: epoch, 3: period
+@@ 
+-uniform double inGameTime;
++uniform float inGameTime;
+@@ 
+-  double timeOffset = orbitData.x;
++  float timeOffset = orbitData.x;
+@@ 
+-  double epoch = orbitData.y;
++  float epoch = orbitData.y;
+@@ 
+-  double period = orbitData.z;
++  float period = orbitData.z;
+@@ 
+-  double numOfRevolutions = (inGameTime - epoch) / period;
++  float numOfRevolutions = (inGameTime - epoch) / period;
+@@ 
+-  currentRevolutionFraction = float(numOfRevolutions - double(int(numOfRevolutions)));
++  currentRevolutionFraction = float(numOfRevolutions - float(int(numOfRevolutions)));
+
+diff --git a/modules/space/shaders/keplertrails_vs.glsl b/modules/space/shaders/keplertrails_vs.glsl
+index xxxx..xxxx 100644
+--- a/modules/space/shaders/keplertrails_vs.glsl
++++ b/modules/space/shaders/keplertrails_vs.glsl
+@@ 
+-layout (location = 1) in dvec3 orbitData; // 1: timeOffset, 2: epoch, 3: period
++layout (location = 1) in vec3 orbitData; // 1: timeOffset, 2: epoch, 3: period
+@@ 
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+@@ 
+-uniform double inGameTime;
++uniform float inGameTime;
+@@ 
+-  double timeOffset = orbitData.x;
++  float timeOffset = orbitData.x;
+@@ 
+-  double epoch = orbitData.y;
++  float epoch = orbitData.y;
+@@ 
+-  double period = orbitData.z;
++  float period = orbitData.z;
+@@ 
+-  double nrOfRevolutions = (inGameTime - epoch) / period;
++  float nrOfRevolutions = (inGameTime - epoch) / period;
+@@ 
+-  double frac = double(int(nrOfRevolutions));
++  float frac = float(int(nrOfRevolutions));
+@@ 
+-  viewSpacePosition = vec4(modelViewTransform * dvec4(vertexData.xyz, 1));
++  viewSpacePosition = vec4(modelViewTransform * vec4(vertexData.xyz, 1));
+
+diff --git a/modules/space/shaders/keplerpoints_gs.glsl b/modules/space/shaders/keplerpoints_gs.glsl
+index xxxx..xxxx 100644
+--- a/modules/space/shaders/keplerpoints_gs.glsl
++++ b/modules/space/shaders/keplerpoints_gs.glsl
+@@ 
+-uniform dmat4 modelTransform;
++uniform mat4 modelTransform;
+@@ 
+-uniform dmat4 viewTransform;
++uniform mat4 viewTransform;
+@@ 
+-uniform dvec3 cameraPositionWorld;
++uniform vec3 cameraPositionWorld;
+@@ 
+-  dvec4 vertPosWorldSpace = modelTransform * pos;
++  vec4 vertPosWorldSpace = modelTransform * pos;
+@@ 
+-  dvec4 p0World = vertPosWorldSpace + vec4(up-right, 0.0);
++  vec4 p0World = vertPosWorldSpace + vec4(up-right, 0.0);
+@@ 
+-  dvec4 p1World = vertPosWorldSpace + vec4(-right-up,0.0);
++  vec4 p1World = vertPosWorldSpace + vec4(-right-up,0.0);
+@@ 
+-  dvec4 p2World = vertPosWorldSpace + vec4(right+up, 0.0);
++  vec4 p2World = vertPosWorldSpace + vec4(right+up, 0.0);
+@@ 
+-  dvec4 p3World = vertPosWorldSpace + vec4(right-up, 0.0);
++  vec4 p3World = vertPosWorldSpace + vec4(right-up, 0.0);
+@@ 
+-  dmat4 ViewProjectionTransform = projectionTransform * viewTransform;
++  mat4 ViewProjectionTransform = projectionTransform * viewTransform;
+
+diff --git a/modules/space/shaders/keplertrails_fs.glsl b/modules/space/shaders/keplertrails_fs.glsl
+index xxxx..xxxx 100644
+--- a/modules/space/shaders/keplertrails_fs.glsl
++++ b/modules/space/shaders/keplertrails_fs.glsl
+@@ 
+-  // vertices. We want vertexDistance to be double up to this point, I think, (hence the
++  // vertices. We want vertexDistance to be float up to this point, I think, (hence the
+
+diff --git a/modules/base/shaders/renderabletrail_apple_vs.glsl b/modules/base/shaders/renderabletrail_apple_vs.glsl
+index xxxx..xxxx 100644
+--- a/modules/base/shaders/renderabletrail_apple_vs.glsl
++++ b/modules/base/shaders/renderabletrail_apple_vs.glsl
+@@ 
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+@@ 
+-  vs_gPosition = vec4(modelViewTransform * dvec4(in_point_position, 1));
++  vs_gPosition = vec4(modelViewTransform * vec4(in_point_position, 1));
+
+diff --git a/modules/base/shaders/pointcloud/pointcloud_gs.glsl b/modules/base/shaders/pointcloud/pointcloud_gs.glsl
+index xxxx..xxxx 100644
+--- a/modules/base/shaders/pointcloud/pointcloud_gs.glsl
++++ b/modules/base/shaders/pointcloud/pointcloud_gs.glsl
+@@ 
+-uniform dmat4 cameraViewMatrix;
++uniform mat4 cameraViewMatrix;
+@@ 
+-uniform dmat4 projectionMatrix;
++uniform mat4 projectionMatrix;
+@@ 
+-uniform dmat4 modelMatrix;
++uniform mat4 modelMatrix;
+@@ 
+-uniform dvec3 cameraPosition;
++uniform vec3 cameraPosition;
+@@ 
+-  dvec4 dpos = modelMatrix * dvec4(dvec3(pos.xyz), 1.0);
++  vec4 dpos = modelMatrix * vec4(vec3(pos.xyz), 1.0);
+@@ 
+-    double distanceToCamera = length(dpos.xyz - cameraPosition);
++    float distanceToCamera = length(dpos.xyz - cameraPosition);
+@@ 
+-    double pointSize = length(dvec3(scaledRight));
++    float pointSize = length(vec3(scaledRight));
+@@ 
+-  dmat4 cameraViewProjectionMatrix = projectionMatrix * cameraViewMatrix;
++  mat4 cameraViewProjectionMatrix = projectionMatrix * cameraViewMatrix;
+@@ 
+-    vec4(cameraViewProjectionMatrix * dvec4(scaledRight, 0.0));
++    vec4(cameraViewProjectionMatrix * vec4(scaledRight, 0.0));
+@@ 
+-    vec4(cameraViewProjectionMatrix * dvec4(scaledUp, 0.0));
++    vec4(cameraViewProjectionMatrix * vec4(scaledUp, 0.0));
