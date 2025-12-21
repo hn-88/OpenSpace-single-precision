@@ -2220,7 +2220,14 @@ diff --git a/modules/globebrowsing/src/renderableglobe.cpp b/modules/globebrowsi
 index xxxx..xxxx 100644
 --- a/modules/globebrowsing/src/renderableglobe.cpp
 +++ b/modules/globebrowsing/src/renderableglobe.cpp
-@@ around line 1236
+@@ around line 1105
+-    if (_shadersNeedRecompilation) [[unlikely]] {
+-        recompileShaders();
+-    }
++    if (_shadersNeedRecompilation) [[unlikely]] {
++        recompileShaders();
++    } if (!_globalRenderer.program || !_localRenderer.program) {return;}
+@@ around line 1271
 -    _localRenderer.program->setUniform(
 -        "projectionTransform",
 -        data.camera.sgctInternal.projectionMatrix()
@@ -2242,9 +2249,9 @@ index xxxx..xxxx 100644
 -            programObject.setUniform(
 -                std::format(NamePos, counter), sd.casterPositionVec
 -            );
-+            programObject.setUniform(std::format(NameXp, counter),  static_cast(sd.xp));
-+            programObject.setUniform(std::format(NameXu, counter),  static_cast(sd.xu));
-+            programObject.setUniform(std::format(NameRc, counter),  static_cast(sd.rc));
++            programObject.setUniform(std::format(NameXp, counter),  static_cast<float>(sd.xp));
++            programObject.setUniform(std::format(NameXu, counter),  static_cast<float>(sd.xu));
++            programObject.setUniform(std::format(NameRc, counter),  static_cast<float>(sd.rc));
 +            programObject.setUniform(
 +                std::format(NameSource, counter), glm::vec3(sd.sourceCasterVec)
 +            );
