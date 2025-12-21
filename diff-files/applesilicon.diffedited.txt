@@ -2220,7 +2220,7 @@ diff --git a/modules/globebrowsing/src/renderableglobe.cpp b/modules/globebrowsi
 index xxxx..xxxx 100644
 --- a/modules/globebrowsing/src/renderableglobe.cpp
 +++ b/modules/globebrowsing/src/renderableglobe.cpp
-@@ 
+@@ around line 1236
 -    _localRenderer.program->setUniform(
 -        "projectionTransform",
 -        data.camera.sgctInternal.projectionMatrix()
@@ -2229,4 +2229,44 @@ index xxxx..xxxx 100644
 +        "projectionTransform",
 +        glm::mat4(data.camera.sgctInternal.projectionMatrix())
 +    );
-
+@@ around line 1739
+-programObject.setUniform("modelTransform", _cachedModelTransform);
++programObject.setUniform("modelTransform", glm::mat4(_cachedModelTransform));
+@@ around 2305
+-            programObject.setUniform(std::format(NameXp, counter), sd.xp);
+-            programObject.setUniform(std::format(NameXu, counter), sd.xu);
+-            programObject.setUniform(std::format(NameRc, counter), sd.rc);
+-            programObject.setUniform(
+-                std::format(NameSource, counter), sd.sourceCasterVec
+-            );
+-            programObject.setUniform(
+-                std::format(NamePos, counter), sd.casterPositionVec
+-            );
++            programObject.setUniform(std::format(NameXp, counter),  static_cast(sd.xp));
++            programObject.setUniform(std::format(NameXu, counter),  static_cast(sd.xu));
++            programObject.setUniform(std::format(NameRc, counter),  static_cast(sd.rc));
++            programObject.setUniform(
++                std::format(NameSource, counter), glm::vec3(sd.sourceCasterVec)
++            );
++            programObject.setUniform(
++                std::format(NamePos, counter), glm::vec3(sd.casterPositionVec)
++            );
+@@ around 2319
+-    if (stype == ShadowCompType::LOCAL_SHADOW) {
+-        programObject.setUniform(
+-            "inverseViewTransform",
+-            glm::inverse(data.camera.combinedViewMatrix())
+-        );
+-    }
+-    else if (stype == ShadowCompType::GLOBAL_SHADOW) {
+-        programObject.setUniform("modelTransform", _cachedModelTransform);
+-    }
++    if (stype == ShadowCompType::LOCAL_SHADOW) {
++        programObject.setUniform(
++            "inverseViewTransform",
++            glm::mat4(glm::inverse(data.camera.combinedViewMatrix()))
++        );
++    }
++    else if (stype == ShadowCompType::GLOBAL_SHADOW) {
++        programObject.setUniform("modelTransform", glm::mat4(_cachedModelTransform));
++    }
