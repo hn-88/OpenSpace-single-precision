@@ -2215,3 +2215,18 @@ index xxxx..xxxx 100644
 @@ 
 -    vec4(cameraViewProjectionMatrix * dvec4(scaledUp, 0.0));
 +    vec4(cameraViewProjectionMatrix * vec4(scaledUp, 0.0));
+
+diff --git a/modules/globebrowsing/src/renderableglobe.cpp b/modules/globebrowsing/src/renderableglobe.cpp
+index xxxx..xxxx 100644
+--- a/modules/globebrowsing/src/renderableglobe.cpp
++++ b/modules/globebrowsing/src/renderableglobe.cpp
+@@ 
+-    _localRenderer.program->setUniform(
+-        "projectionTransform",
+-        data.camera.sgctInternal.projectionMatrix()
+-    );
++    _localRenderer.program->setUniform(
++        "projectionTransform",
++        glm::mat4(data.camera.sgctInternal.projectionMatrix())
++    );
+
