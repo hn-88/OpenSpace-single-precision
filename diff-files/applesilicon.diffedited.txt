@@ -2277,3 +2277,11 @@ index xxxx..xxxx 100644
 +    else if (stype == ShadowCompType::GLOBAL_SHADOW) {
 +        programObject.setUniform("modelTransform", glm::mat4(_cachedModelTransform));
 +    }
+
+diff --git a/modules/base/rendering/renderablesphere.cpp b/modules/base/rendering/renderablesphere.cpp
+index xxxx..xxxx 100644
+--- a/modules/base/rendering/renderablesphere.cpp
++++ b/modules/base/rendering/renderablesphere.cpp
+@@ around line 398
+-_shader->setUniform(_uniformCache.modelViewRotation, modelViewRotation);
++if (_uniformCache.modelViewRotation != -1) {_shader->setUniform(_uniformCache.modelViewRotation, modelViewRotation);}
