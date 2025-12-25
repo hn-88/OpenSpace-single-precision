@@ -2288,3 +2288,45 @@ index xxxx..xxxx 100644
 @@ around line 398
 -_shader->setUniform(_uniformCache.modelViewRotation, modelViewRotation);
 +if (_uniformCache.modelViewRotation != -1) {_shader->setUniform(_uniformCache.modelViewRotation, modelViewRotation);}
+
+diff --git a/ext/ghoul/src/font/fontrenderer.cpp b/ext/ghoul/src/font/fontrenderer.cpp
+index xxxx..xxxx 100644
+--- a/ext/ghoul/src/font/fontrenderer.cpp
++++ b/ext/ghoul/src/font/fontrenderer.cpp
+@@ around line 112
+-uniform dmat4 mvpMatrix;
++uniform mat4 mvpMatrix;
+@@ 
+-uniform dmat4 modelViewTransform;
++uniform mat4 modelViewTransform;
+@@ around line 120
+-vec4 finalPos = vec4(mvpMatrix * dvec4(in_position.xyz, 1.0));
++vec4 finalPos = vec4(mvpMatrix * vec4(in_position.xyz, 1.0));
+@@ 
+-vsPosition = vec3(modelViewTransform * dvec4(in_position.xyz, 1.0));
++vsPosition = vec3(modelViewTransform * vec4(in_position.xyz, 1.0));
+@@ around 625
+-                const glm::dvec3 normal = glm::normalize(
+-                    labelInfo.cameraPos - glm::dvec3(pos)
++                const glm::vec3 normal = glm::normalize(
++                    labelInfo.cameraPos - glm::vec3(pos)
+@@ around 631
+-const glm::vec3 up = glm::vec3(glm::cross(normal, glm::dvec3(right)));
++const glm::vec3 up = glm::vec3(glm::cross(normal, glm::vec3(right)));
+@@ 641
+-                glm::vec4(labelInfo.mvpMatrix * glm::dvec4(p0, 1.0)),
+-                glm::vec4(labelInfo.mvpMatrix * glm::dvec4(p1, 1.0))
++                glm::vec4(labelInfo.mvpMatrix * glm::vec4(p0, 1.0)),
++                glm::vec4(labelInfo.mvpMatrix * glm::vec4(p1, 1.0))
+@@ 679
+-                    glm::dvec3 normal =
+-                        glm::normalize(labelInfo.cameraPos - glm::dvec3(pos));
+-                    glm::vec3 newRight =
+-                        glm::vec3(glm::cross(labelInfo.cameraLookUp, normal));
+-                    glm::vec3 newUp = glm::vec3(glm::cross(normal, glm::dvec3(newRight)));
++                    glm::vec3 normal =
++                        glm::normalize(labelInfo.cameraPos - glm::vec3(pos));
++                    glm::vec3 newRight =
++                        glm::vec3(glm::cross(labelInfo.cameraLookUp, normal));
++                    glm::vec3 newUp = glm::vec3(glm::cross(normal, glm::vec3(newRight)));
+
