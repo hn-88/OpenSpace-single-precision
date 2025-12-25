@@ -2330,3 +2330,22 @@ index xxxx..xxxx 100644
 +                        glm::vec3(glm::cross(labelInfo.cameraLookUp, normal));
 +                    glm::vec3 newUp = glm::vec3(glm::cross(normal, glm::vec3(newRight)));
 
+diff --git a/ext/ghoul/include/ghoul/font/fontrenderer.h b/ext/ghoul/include/ghoul/font/fontrenderer.h
+index xxxx..xxxx 100644
+--- a/ext/ghoul/include/ghoul/font/fontrenderer.h
++++ b/ext/ghoul/include/ghoul/font/fontrenderer.h
+@@ around line 70
+-        glm::dmat4 mvpMatrix = glm::dmat4(1.0);
+-        glm::dmat4 modelViewMatrix = glm::dmat4(1.0);
+-        glm::dmat4 projectionMatrix = glm::dmat4(1.0);
+-        glm::vec3 orthoRight = glm::vec3(0.f);
+-        glm::vec3 orthoUp = glm::vec3(0.f);
+-        glm::dvec3 cameraPos = glm::dvec3(0.0);
+-        glm::dvec3 cameraLookUp = glm::dvec3(0.0);
++        glm::mat4 mvpMatrix = glm::mat4(1.0);
++        glm::mat4 modelViewMatrix = glm::mat4(1.0);
++        glm::mat4 projectionMatrix = glm::mat4(1.0);
++        glm::vec3 orthoRight = glm::vec3(0.f);
++        glm::vec3 orthoUp = glm::vec3(0.f);
++        glm::vec3 cameraPos = glm::vec3(0.0);
++        glm::vec3 cameraLookUp = glm::vec3(0.0);
