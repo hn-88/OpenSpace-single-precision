@@ -2015,10 +2015,11 @@ index e6ca44a97e..887ba967dc 100644
 --- a/modules/globebrowsing/shaders/localrenderer_vs.glsl
 +++ b/modules/globebrowsing/shaders/localrenderer_vs.glsl
 @@ 
--posObjSpace = vec3(inverseViewTransform * dvec4(p, 1.0));
--normalObjSpace = normalize(vec3(inverseViewTransform * dvec4(patchNormalCameraSpace, 0.0)));
-+posObjSpace = vec3(inverseViewTransform * vec4(p, 1.0));
-+normalObjSpace = normalize(vec3(inverseViewTransform * vec4(patchNormalCameraSpace, 0.0)));
+-  posObjSpace = vec3(inverseViewTransform * dvec4(p, 1.0));
++  posObjSpace = vec3(inverseViewTransform * vec4(p, 1.0));
+@@ 
+-  normalObjSpace = normalize(vec3(inverseViewTransform * dvec4(patchNormalCameraSpace, 0.0)));
++  normalObjSpace = normalize(vec3(inverseViewTransform * vec4(patchNormalCameraSpace, 0.0)));
 @@ 
 -positionWorldSpace = vec3(modelTransform * dvec4(p, 1.0));
 +positionWorldSpace = vec3(modelTransform * vec4(p, 1.0));
