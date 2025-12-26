@@ -2230,6 +2230,20 @@ index xxxx..xxxx 100644
 +    if (_shadersNeedRecompilation) [[unlikely]] {
 +        recompileShaders();
 +    } if (!_globalRenderer.program || !_localRenderer.program) {return;}
+@@ around 1147
+-    _localRenderer.program->setUniform("opacity", opacity());
+-    _globalRenderer.program->setUniform("opacity", opacity());
++    _localRenderer.program->setUniform("opacity", static_cast<float>(opacity()));
++    _globalRenderer.program->setUniform("opacity", static_cast<float>(opacity()));
+@@ around 1236
+-    _globalRenderer.program->setUniform(
+-        "modelViewProjectionTransform",
+-        modelViewProjectionTransform
+-    );
++    _globalRenderer.program->setUniform(
++        "modelViewProjectionTransform",
++        glm::mat4(modelViewProjectionTransform)
++    );
 @@ around line 1271
 -    _localRenderer.program->setUniform(
 -        "projectionTransform",
@@ -2239,6 +2253,45 @@ index xxxx..xxxx 100644
 +        "projectionTransform",
 +        glm::mat4(data.camera.sgctInternal.projectionMatrix())
 +    );
+@@ around 1291
+-        _globalRenderer.program->setUniform(
+-            "lightDirectionCameraSpace",
+-            -glm::normalize(directionToSunObjSpace)
+-        );
+-        _localRenderer.program->setUniform(
+-            "lightDirectionCameraSpace",
+-            -glm::normalize(directionToSunObjSpace)
+-        );
++        _globalRenderer.program->setUniform(
++            "lightDirectionCameraSpace",
++            glm::vec3(-glm::normalize(directionToSunCameraSpace))
++        );
++        _localRenderer.program->setUniform(
++            "lightDirectionCameraSpace",
++            glm::vec3(-glm::normalize(directionToSunCameraSpace))
++        );
+@@ around 1300
+-        if (_ringsComponent) {
+-            _localRenderer.program->setUniform(
+-                "lightDirectionObjSpace",
+-                -glm::normalize(directionToSunObjSpace)
+-            );
+-            _globalRenderer.program->setUniform(
+-                "lightDirectionObjSpace",
+-                -glm::normalize(directionToSunObjSpace)
+-            );
++        if (_ringsComponent) {
++            _localRenderer.program->setUniform(
++                "lightDirectionObjSpace",
++                glm::vec3(-glm::normalize(directionToSunCameraSpace))
++            );
++            _globalRenderer.program->setUniform(
++                "lightDirectionObjSpace",
++                glm::vec3(-glm::normalize(directionToSunCameraSpace))
++            );
+@@ around 1729
+-programObject.setUniform("deltaTheta0", glm::length(deltaTheta0));
++programObject.setUniform("deltaTheta0", static_cast<float>(glm::length(deltaTheta0)));
 @@ around line 1739
 -programObject.setUniform("modelTransform", _cachedModelTransform);
 +programObject.setUniform("modelTransform", glm::mat4(_cachedModelTransform));
