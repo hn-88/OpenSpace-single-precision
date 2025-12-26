@@ -2402,3 +2402,27 @@ index xxxx..xxxx 100644
 +        glm::vec3 orthoUp = glm::vec3(0.f);
 +        glm::vec3 cameraPos = glm::vec3(0.0);
 +        glm::vec3 cameraLookUp = glm::vec3(0.0);
+
+diff --git a/src/interaction/touchbar.mm b/src/interaction/touchbar.mm
+index xxxx..xxxx 100644
+--- a/src/interaction/touchbar.mm
++++ b/src/interaction/touchbar.mm
+@@ around line 179
+-.synchronized = scripting::ScriptEngine::ShouldBeSynchronized::No,
++.synchronized = scripting::ScriptEngine::Script::ShouldBeSynchronized::No,
+@@ 
+-.sendToRemote = scripting::ScriptEngine::ShouldSendToRemote::No
++.sendToRemote = scripting::ScriptEngine::Script::ShouldSendToRemote::No
+@@ 
+-.synchronized = scripting::ScriptEngine::ShouldBeSynchronized::Yes,
++.synchronized = scripting::ScriptEngine::Script::ShouldBeSynchronized::Yes,
+@@ 
+-.sendToRemote = scripting::ScriptEngine::ShouldSendToRemote::Yes
++.sendToRemote = scripting::ScriptEngine::Script::ShouldSendToRemote::Yes
+@@ 
+-.synchronized = scripting::ScriptEngine::ShouldBeSynchronized::No,
++.synchronized = scripting::ScriptEngine::Script::ShouldBeSynchronized::No,
+@@ 
+-.sendToRemote = scripting::ScriptEngine::ShouldSendToRemote::No
++.sendToRemote = scripting::ScriptEngine::Script::ShouldSendToRemote::No
+
