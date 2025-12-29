@@ -2254,14 +2254,14 @@ index xxxx..xxxx 100644
 +        glm::mat4(data.camera.sgctInternal.projectionMatrix())
 +    );
 @@ around 1291
--        _globalRenderer.program->setUniform(
--            "lightDirectionCameraSpace",
--            -glm::normalize(directionToSunObjSpace)
--        );
--        _localRenderer.program->setUniform(
--            "lightDirectionCameraSpace",
--            -glm::normalize(directionToSunObjSpace)
--        );
+-         _globalRenderer.program->setUniform(
+-             "lightDirectionCameraSpace",
+-             -glm::normalize(directionToSunObjSpace)
+-         );
+-         _localRenderer.program->setUniform(
+-             "lightDirectionCameraSpace",
+-             -glm::normalize(directionToSunObjSpace)
+-         );
 +        _globalRenderer.program->setUniform(
 +            "lightDirectionCameraSpace",
 +            glm::vec3(-glm::normalize(directionToSunCameraSpace))
