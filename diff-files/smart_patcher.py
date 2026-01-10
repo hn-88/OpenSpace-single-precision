@@ -10,17 +10,17 @@ def parse_diff_file(diff_filename):
     changes = []
     current_file = None
     
-    # Regex to capture the filename from "+++ b/path/to/file"
-    # We accept a/ or b/ or no prefix, but standard git diffs usually use b/ for the new file
-    file_pattern = re.compile(r'^\+\+\+ [ab]/(.*)$')
-    
+    # Regex to capture the filename from "+++ b/path/to/file" or "+++ path/to/file" or "+++ path/to/file timestamp"
+    # We accept a/ or b/ or no prefix, and optionally strip timestamps
+    file_pattern = re.compile(r'^\+\+\+ (?:[ab]/)?(.+?)(?:\s+\d{4}-\d{2}-\d{2}.*)?$')
+
     try:
         with open(diff_filename, 'r', encoding='utf-8') as f:
             lines = f.read().splitlines()
     except FileNotFoundError:
         print(f"Error: Diff file '{diff_filename}' not found.")
         sys.exit(1)
-
+    
     i = 0
     while i < len(lines):
         line = lines[i]
