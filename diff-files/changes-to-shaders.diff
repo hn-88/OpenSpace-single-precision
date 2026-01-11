@@ -1809,4 +1809,88 @@ diff -uN a/shaders/fragment.glsl b/shaders/fragment.glsl
  };
  
  #endif
+
+diff -uN modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrowsing/shaders/texturetilemapping.glsl
+--- modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 18:20:30
++++ modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 11:07:55
+@@ -70,6 +70,28 @@
+ // Show shadow from rings onto globe
+-#define USE_RING_SHADOWS #{useRingShadows}
++#define USE_RING_SHADOWS #{useRingShadows}
++// --- GLOBAL UNIFORMS (Moved here to fix macOS Linker Crash) ---
++#if NUMLAYERS_COLORTEXTURE > 0
++uniform Layer ColorLayers[NUMLAYERS_COLORTEXTURE];
++#endif
++
++#if NUMLAYERS_HEIGHTMAP > 0
++uniform Layer HeightLayers[NUMLAYERS_HEIGHTMAP];
++#endif
++
++#if NUMLAYERS_NIGHTTEXTURE > 0
++uniform Layer NightLayers[NUMLAYERS_NIGHTTEXTURE];
++#endif
++
++#if NUMLAYERS_OVERLAY > 0
++uniform Layer Overlays[NUMLAYERS_OVERLAY];
++#endif
++
++#if NUMLAYERS_WATERMASK > 0
++uniform Layer WaterMasks[NUMLAYERS_WATERMASK];
++#endif
++// -------------------------------------------------------------
++
+ const vec3 DefaultLevelWeights = vec3(1.0, 0.0, 0.0);
  
+ float orenNayarDiffuse(vec3 lightDirection, vec3 viewDirection, vec3 surfaceNormal,
+@@ -118,23 +140,25 @@
+   return transform.uvOffset + transform.uvScale * tileUV;
+ }
+ 
+-vec4 getTexVal(ChunkTilePile chunkTilePile, vec3 w, vec2 uv) {
+-  vec4 v1 = texture(
+-    chunkTilePile.chunkTile0.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile0, uv)
+-  );
+-  vec4 v2 = texture(
+-    chunkTilePile.chunkTile1.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile1, uv)
+-  );
+-  vec4 v3 = texture(
+-    chunkTilePile.chunkTile2.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile2, uv)
+-  );
++// CHANGED: Takes explicit samplers and transforms to avoid passing structs containing samplers
++vec4 getTexVal(sampler2D s0, TileUvTransform t0,
++               sampler2D s1, TileUvTransform t1,
++               sampler2D s2, TileUvTransform t2,
++               vec3 w, vec2 uv) {
++  vec4 v1 = texture(s0, tileUVToTextureSamplePosition(t0, uv));
++  vec4 v2 = texture(s1, tileUVToTextureSamplePosition(t1, uv));
++  vec4 v3 = texture(s2, tileUVToTextureSamplePosition(t2, uv));
+ 
+@@
+-   return w.x * v1 + w.y * v2 + w.z * v3;
+- }
++   return w.x * v1 + w.y * v2 + w.z * v3;
++ }
++// Helper macro to unwrap the struct at the call site
++#define SAFE_GET_TEX_VAL(pile, w, uv) getTexVal( \
++    pile.chunkTile0.textureSampler, pile.chunkTile0.uvTransform, \
++    pile.chunkTile1.textureSampler, pile.chunkTile1.uvTransform, \
++    pile.chunkTile2.textureSampler, pile.chunkTile2.uvTransform, \
++    w, uv)
++
+ #for id, layerGroup in layerGroups
+ #for i in 0..#{lastLayerIndex#{layerGroup}}
+ 
+@@ -244,7 +268,8 @@
+ 
+-   float height = 0;
++   float height = 0;
++  // The shader compiler will remove unused code when variables are multiplied by
++  // a constant 0
+ #if !HEIGHTMAP_BLENDING_ENABLED
+   levelWeights = DefaultLevelWeights;
+ #endif // HEIGHTMAP_BLENDING_ENABLED
+ 
+
