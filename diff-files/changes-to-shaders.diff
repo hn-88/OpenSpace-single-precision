@@ -1893,4 +1893,21 @@ diff -uN modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrow
    levelWeights = DefaultLevelWeights;
  #endif // HEIGHTMAP_BLENDING_ENABLED
  
-
+@@ around 325
+-  #for i in 0..#{lastLayerIndexColorLayers}
+-  {
+-    vec4 colorSample = getSampleColorLayers#{i}(uv, levelWeights, ColorLayers);
+-    colorSample = performAdjustmentColorLayers#{i}(colorSample, ColorLayers[#{i}].adjustment);
+-    colorSample = performLayerSettings(colorSample, ColorLayers[#{i}].settings);
+-
+-    color = blendColorLayers#{i}(color, colorSample, 1.0);
+-  }
+-  #endfor
++  #for i in 0..#{lastLayerIndexColorLayers}
++  {
++    vec4 sample#{i} = getSampleColorLayers#{i}(uv, levelWeights);
++    vec4 adjusted#{i} = performAdjustmentColorLayers#{i}(sample#{i}, ColorLayers[#{i}].adjustment);
++    vec4 final#{i} = performLayerSettings(adjusted#{i}, ColorLayers[#{i}].settings);
++    color = blendColorLayers#{i}(color, final#{i}, 1.0);
++  }
++  #endfor
