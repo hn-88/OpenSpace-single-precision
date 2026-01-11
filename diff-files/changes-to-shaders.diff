@@ -1795,4 +1795,18 @@ diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store shade
 -if (f.disableDepthNormalization)
 +if (f.disableDepthNormalization != 0)
 
+diff -uN a/shaders/fragment.glsl b/shaders/fragment.glsl
+--- shaders/fragment.glsl	2026-01-10 18:20:32
++++ shaders/fragment.glsl	2026-01-10 11:07:55
+@@ -34,8 +34,8 @@
+   vec4 gNormal;
+   float depth;
+   uint blend;
+-  bool forceFboRendering;
+-  bool disableLDR2HDR;
++  int forceFboRendering;
++  int disableLDR2HDR;
+ };
+ 
+ #endif
  
