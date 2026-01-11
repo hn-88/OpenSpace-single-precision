@@ -1869,10 +1869,10 @@ diff -uN modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrow
 +  vec4 v3 = texture(s2, tileUVToTextureSamplePosition(t2, uv));
  
 @@
--   return w.x * v1 + w.y * v2 + w.z * v3;
-- }
-+   return w.x * v1 + w.y * v2 + w.z * v3;
-+ }
+-  return w.x * v1 + w.y * v2 + w.z * v3;
+-}
++  return w.x * v1 + w.y * v2 + w.z * v3;
++}
 +// Helper macro to unwrap the struct at the call site
 +#define SAFE_GET_TEX_VAL(pile, w, uv) getTexVal( \
 +    pile.chunkTile0.textureSampler, pile.chunkTile0.uvTransform, \
@@ -1882,16 +1882,6 @@ diff -uN modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrow
 +
  #for id, layerGroup in layerGroups
  #for i in 0..#{lastLayerIndex#{layerGroup}}
- 
-@@ -244,7 +268,8 @@
- 
--   float height = 0;
-+   float height = 0;
-+  // The shader compiler will remove unused code when variables are multiplied by
-+  // a constant 0
- #if !HEIGHTMAP_BLENDING_ENABLED
-   levelWeights = DefaultLevelWeights;
- #endif // HEIGHTMAP_BLENDING_ENABLED
  
 @@ around 325
 -  #for i in 0..#{lastLayerIndexColorLayers}
