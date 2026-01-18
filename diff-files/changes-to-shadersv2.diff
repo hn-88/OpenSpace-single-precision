@@ -1,0 +1,1766 @@
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store ext/ghoul/src/opengl/programobject.cpp ext/ghoul/src/opengl/programobject.cpp
+--- ext/ghoul/src/opengl/programobject.cpp	2026-01-10 10:59:47
++++ ext/ghoul/src/opengl/programobject.cpp	2026-01-10 11:07:55
+@@ -913,10 +1022,13 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(location, static_cast<float>(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, GLdouble v1, GLdouble v2) const {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -924,10 +1036,17 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, v1, v2);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(
++        location,
++        static_cast<float>(v1),
++        static_cast<float>(v2)
++    );
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, GLdouble v1, GLdouble v2,
+                                GLdouble v3) const
+ {
+@@ -937,10 +1056,18 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, v1, v2, v3);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(
++        location,
++        static_cast<float>(v1),
++        static_cast<float>(v2),
++        static_cast<float>(v3)
++    );
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, GLdouble v1, GLdouble v2,
+                                GLdouble v3, GLdouble v4) const
+ {
+@@ -950,10 +1077,19 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, v1, v2, v3, v4);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(
++        location,
++        static_cast<float>(v1),
++        static_cast<float>(v2),
++        static_cast<float>(v3),
++        static_cast<float>(v4)
++    );
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, const glm::dvec2& value) const {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -961,10 +1097,13 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(location, glm::vec2(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, const glm::dvec3& value) const {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -972,10 +1111,13 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(location, glm::vec3(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name, const glm::dvec4& value) const {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -983,10 +1125,13 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value);
++
++    // macOS OpenGL does not support double-precision uniforms
++    setUniform(location, glm::vec4(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name,
+                                const std::vector<GLdouble>& values) const
+ {
+@@ -996,10 +1141,19 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, values);
++
++    // macOS OpenGL does not support double-precision uniforms
++    std::vector<float> floatValues;
++    floatValues.reserve(values.size());
++    for (GLdouble v : values) {
++        floatValues.push_back(static_cast<float>(v));
++    }
++
++    setUniform(location, floatValues);
+     return true;
+ }
+ 
++
+ bool ProgramObject::setUniform(const std::string& name,
+                                const std::vector<glm::dvec2>& values) const
+ {
+@@ -1009,7 +1163,15 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, values);
++
++    // macOS OpenGL does not support double-precision uniforms
++    std::vector<glm::vec2> floatValues;
++    floatValues.reserve(values.size());
++    for (const glm::dvec2& v : values) {
++        floatValues.emplace_back(v);
++    }
++
++    setUniform(location, floatValues);
+     return true;
+ }
+ 
+@@ -1022,7 +1184,15 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, values);
++
++    // macOS OpenGL does not support double-precision uniforms
++    std::vector<glm::vec3> floatValues;
++    floatValues.reserve(values.size());
++    for (const glm::dvec3& v : values) {
++        floatValues.emplace_back(v);
++    }
++
++    setUniform(location, floatValues);
+     return true;
+ }
+ 
+@@ -1035,7 +1205,15 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, values);
++
++    // macOS OpenGL does not support double-precision uniforms
++    std::vector<glm::vec4> floatValues;
++    floatValues.reserve(values.size());
++    for (const glm::dvec4& v : values) {
++        floatValues.emplace_back(v);
++    }
++
++    setUniform(location, floatValues);
+     return true;
+ }
+ 
+@@ -1165,7 +1343,9 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++
++    // macOS OpenGL does not support double-precision matrix uniforms
++    setUniform(location, glm::mat2x2(value), transpose);
+     return true;
+ }
+ 
+@@ -1178,7 +1358,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat2x3(value), transpose);
+     return true;
+ }
+ 
+@@ -1191,7 +1371,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat2x4(value), transpose);
+     return true;
+ }
+ 
+@@ -1204,7 +1384,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat3x2(value), transpose);
+     return true;
+ }
+ 
+@@ -1217,7 +1397,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat3x3(value), transpose);
+     return true;
+ }
+ 
+@@ -1230,7 +1410,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat3x4(value), transpose);
+     return true;
+ }
+ 
+@@ -1243,7 +1423,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat4x2(value), transpose);
+     return true;
+ }
+ 
+@@ -1256,7 +1436,7 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat4x3(value), transpose);
+     return true;
+ }
+ 
+@@ -1269,12 +1449,12 @@
+     if (location == -1) {
+         return false;
+     }
+-    setUniform(location, value, transpose);
++    setUniform(location, glm::mat4x4(value), transpose);
+     return true;
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLuint value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1ui.isResolved()) {
+         glProgramUniform1ui(_id, location, value);
+@@ -1289,7 +1469,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLuint v1, GLuint v2) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2ui.isResolved()) {
+         glProgramUniform2ui(_id, location, v1, v2);
+@@ -1304,7 +1484,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLuint v1, GLuint v2, GLuint v3) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3ui.isResolved()) {
+         glProgramUniform3ui(_id, location, v1, v2, v3);
+@@ -1321,7 +1501,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                GLuint v1, GLuint v2, GLuint v3, GLuint v4) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4ui.isResolved()) {
+         glProgramUniform4ui(_id, location, v1, v2, v3, v4);
+@@ -1336,7 +1516,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::uvec2& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2uiv.isResolved()) {
+         glProgramUniform2uiv(_id, location, 1, value_ptr(value));
+@@ -1351,7 +1531,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::uvec3& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3uiv.isResolved()) {
+         glProgramUniform3uiv(_id, location, 1, value_ptr(value));
+@@ -1366,7 +1546,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::uvec4& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4uiv.isResolved()) {
+         glProgramUniform4uiv(_id, location, 1, value_ptr(value));
+@@ -1381,7 +1561,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<GLuint>& values) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1uiv.isResolved()) {
+         glProgramUniform1uiv(
+@@ -1403,7 +1583,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::uvec2>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2uiv.isResolved()) {
+         glProgramUniform2uiv(
+@@ -1429,7 +1609,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::uvec3>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3uiv.isResolved()) {
+         glProgramUniform3uiv(
+@@ -1455,7 +1635,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::uvec4>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4uiv.isResolved()) {
+         glProgramUniform4uiv(
+@@ -1479,7 +1659,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLint value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1i.isResolved()) {
+         glProgramUniform1i(_id, location, value);
+@@ -1494,7 +1674,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLint v1, GLint v2) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2i.isResolved()) {
+         glProgramUniform2i(_id, location, v1, v2);
+@@ -1509,7 +1689,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLint v1, GLint v2, GLint v3) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3i.isResolved()) {
+         glProgramUniform3i(_id, location, v1, v2, v3);
+@@ -1526,7 +1706,7 @@
+ void ProgramObject::setUniform(GLint location, GLint v1, GLint v2, GLint v3,
+                                GLint v4) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4i.isResolved()) {
+         glProgramUniform4i(_id, location, v1, v2, v3, v4);
+@@ -1541,7 +1721,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::ivec2& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2iv.isResolved()) {
+         glProgramUniform2iv(_id, location, 1, value_ptr(value));
+@@ -1556,7 +1736,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::ivec3& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3iv.isResolved()) {
+         glProgramUniform3iv(_id, location, 1, value_ptr(value));
+@@ -1571,7 +1751,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::ivec4& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4iv.isResolved()) {
+         glProgramUniform4iv(_id, location, 1, value_ptr(value));
+@@ -1586,7 +1766,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<GLint>& values) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1iv.isResolved()) {
+         glProgramUniform1iv(
+@@ -1608,7 +1788,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::ivec2>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2iv.isResolved()) {
+         glProgramUniform2iv(
+@@ -1634,7 +1814,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::ivec3>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3iv.isResolved()) {
+         glProgramUniform3iv(
+@@ -1660,7 +1840,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::ivec4>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4iv.isResolved()) {
+         glProgramUniform4iv(
+@@ -1684,7 +1864,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLfloat value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1f.isResolved()) {
+         glProgramUniform1f(_id, location, value);
+@@ -1699,7 +1879,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLfloat v1, GLfloat v2) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2f.isResolved()) {
+         glProgramUniform2f(_id, location, v1, v2);
+@@ -1714,7 +1894,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLfloat v1, GLfloat v2, GLfloat v3) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3f.isResolved()) {
+         glProgramUniform3f(_id, location, v1, v2, v3);
+@@ -1731,7 +1911,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                GLfloat v1, GLfloat v2, GLfloat v3, GLfloat v4) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4f.isResolved()) {
+         glProgramUniform4f(_id, location, v1, v2, v3, v4);
+@@ -1746,7 +1926,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::vec2& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2fv.isResolved()) {
+         glProgramUniform2fv(_id, location, 1, value_ptr(value));
+@@ -1761,7 +1941,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::vec3& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3fv.isResolved()) {
+         glProgramUniform3fv(_id, location, 1, value_ptr(value));
+@@ -1776,7 +1956,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::vec4& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4fv.isResolved()) {
+         glProgramUniform4fv(_id, location, 1, value_ptr(value));
+@@ -1791,7 +1971,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<GLfloat>& values) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform1fv.isResolved()) {
+         glProgramUniform1fv(
+@@ -1812,7 +1992,7 @@
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<glm::vec2>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform2fv.isResolved()) {
+         glProgramUniform2fv(
+@@ -1837,7 +2017,7 @@
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<glm::vec3>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform3fv.isResolved()) {
+         glProgramUniform3fv(
+@@ -1862,7 +2042,7 @@
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<glm::vec4>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniform4fv.isResolved()) {
+         glProgramUniform4fv(
+@@ -1886,7 +2066,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     // Convert to float and use float uniform API
+     const GLfloat f = static_cast<GLfloat>(value);
+@@ -1903,7 +2083,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     // Convert doubles to floats and use the float version of the uniform API
+     const GLfloat f1 = static_cast<GLfloat>(v1);
+@@ -1922,7 +2102,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2, GLdouble v3) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 	
+ 	const GLfloat f1 = static_cast<GLfloat>(v1);
+     const GLfloat f2 = static_cast<GLfloat>(v2);
+@@ -1943,7 +2123,7 @@
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2,
+                                GLdouble v3, GLdouble v4) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+ 	const GLfloat f1 = static_cast<GLfloat>(v1);
+     const GLfloat f2 = static_cast<GLfloat>(v2);
+@@ -1963,7 +2143,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec2& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+     glm::vec2 f(value);
+     if (glbinding::Binding::ProgramUniform2fv.isResolved()) {
+         glProgramUniform2fv(_id, location, 1, value_ptr(f));
+@@ -1978,7 +2158,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec3& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+     glm::vec3 f(value);
+     if (glbinding::Binding::ProgramUniform3fv.isResolved()) {
+         glProgramUniform3fv(_id, location, 1, value_ptr(f));
+@@ -1993,7 +2173,7 @@
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec4& value) const {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+     glm::vec4 f(value);
+     if (glbinding::Binding::ProgramUniform4fv.isResolved()) {
+         glProgramUniform4fv(_id, location, 1, value_ptr(f));
+@@ -2009,7 +2189,7 @@
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<GLdouble>& values) const 
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     std::vector<GLfloat> f(values.size());	
+     for (size_t i = 0; i < values.size(); ++i) {
+@@ -2036,7 +2216,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec2>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     std::vector<glm::vec2> f(values.size());
+     for (size_t i = 0; i < values.size(); ++i) {
+@@ -2067,7 +2247,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec3>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     std::vector<glm::vec3> f(values.size());
+     for (size_t i = 0; i < values.size(); ++i) {
+@@ -2098,7 +2278,7 @@
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec4>& values) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     std::vector<glm::vec4> f(values.size());
+     for (size_t i = 0; i < values.size(); ++i) {
+@@ -2129,7 +2309,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat2x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix2fv.isResolved()) {
+         glProgramUniformMatrix2fv(
+@@ -2158,7 +2338,7 @@
+                                Transpose transpose) const
+ {
+ 
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix2x3fv.isResolved()) {
+         glProgramUniformMatrix2x3fv(
+@@ -2186,7 +2366,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat2x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix2x4fv.isResolved()) {
+         glProgramUniformMatrix2x4fv(
+@@ -2214,7 +2394,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat3x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix3x2fv.isResolved()) {
+         glProgramUniformMatrix3x2fv(
+@@ -2242,7 +2422,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat3x3& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix3fv.isResolved()) {
+         glProgramUniformMatrix3fv(
+@@ -2270,7 +2450,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat3x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix3x4fv.isResolved()) {
+         glProgramUniformMatrix3x4fv(
+@@ -2298,7 +2478,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat4x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix4x2fv.isResolved()) {
+         glProgramUniformMatrix4x2fv(
+@@ -2326,7 +2506,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat4x3& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix4x3fv.isResolved()) {
+         glProgramUniformMatrix4x3fv(
+@@ -2354,7 +2534,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::mat4x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     if (glbinding::Binding::ProgramUniformMatrix4fv.isResolved()) {
+         glProgramUniformMatrix4fv(
+@@ -2382,7 +2562,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat2x2 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix2fv.isResolved()) {
+@@ -2411,7 +2591,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x3& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     // Convert the double-precision matrix to single-precision
+     glm::mat2x3 f(value);   // glm automatically casts each column
+@@ -2442,7 +2622,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat2x4 f(value);
+     
+@@ -2472,7 +2652,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat3x2 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix3x2fv.isResolved()) {
+@@ -2501,7 +2681,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x3& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat3x3 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix3fv.isResolved()) {
+@@ -2530,7 +2710,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat3x4 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix3x4fv.isResolved()) {
+@@ -2559,7 +2739,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x2& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat4x2 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix4x2fv.isResolved()) {
+@@ -2588,7 +2768,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x3& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat4x3 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix4x3fv.isResolved()) {
+@@ -2617,7 +2797,7 @@
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x4& value,
+                                Transpose transpose) const
+ {
+-    if (location == -1){ if (_ignoreUniformLocationError){ return; }ghoul_assert(false, "Location must not be -1");return;}
++    ghoul_assert(location != -1, "Location must not be -1");
+ 
+     glm::mat4x4 f(value);
+     if (glbinding::Binding::ProgramUniformMatrix4fv.isResolved()) {
+@@ -2927,10 +3107,13 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value);
++
++    // macOS OpenGL does not support double-precision vertex attributes
++    setAttribute(location, static_cast<float>(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setAttribute(const std::string& name, GLdouble v1, GLdouble v2) {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -2938,7 +3121,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, v1, v2);
++    setAttribute(location, static_cast<float>(v1), static_cast<float>(v2));
+     return true;
+ }
+ 
+@@ -2951,7 +3134,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, v1, v2, v3);
++    setAttribute(location, static_cast<float>(v1), static_cast<float>(v2), static_cast<float>(v3));
+     return true;
+ }
+ 
+@@ -2964,7 +3147,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, v1, v2, v3, v4);
++    setAttribute(location, static_cast<float>(v1), static_cast<float>(v2), static_cast<float>(v3), static_cast<float>(v4));
+     return true;
+ }
+ 
+@@ -2975,10 +3158,13 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value);
++
++    // macOS OpenGL does not support double-precision vertex attributes
++    setAttribute(location, glm::vec2(value));
+     return true;
+ }
+ 
++
+ bool ProgramObject::setAttribute(const std::string& name, const glm::dvec3& value) {
+     ghoul_assert(!name.empty(), "Name must not be empty");
+ 
+@@ -2986,7 +3172,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value);
++    setAttribute(location, glm::vec3(value));
+     return true;
+ }
+ 
+@@ -2997,7 +3183,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value);
++    setAttribute(location, glm::vec4(value));
+     return true;
+ }
+ 
+@@ -3127,7 +3313,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat2x2(value), transpose);
+     return true;
+ }
+ 
+@@ -3140,7 +3326,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat2x3(value), transpose);
+     return true;
+ }
+ 
+@@ -3153,7 +3339,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat2x4(value), transpose);
+     return true;
+ }
+ 
+@@ -3166,7 +3352,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat3x2(value), transpose);
+     return true;
+ }
+ 
+@@ -3179,7 +3365,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat3x3(value), transpose);
+     return true;
+ }
+ 
+@@ -3192,7 +3378,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat3x4(value), transpose);
+     return true;
+ }
+ 
+@@ -3205,7 +3391,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat4x2(value), transpose);
+     return true;
+ }
+ 
+@@ -3218,7 +3404,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat4x3(value), transpose);
+     return true;
+ }
+ 
+@@ -3231,7 +3417,7 @@
+     if (location == GL_INVALID_INDEX) {
+         return false;
+     }
+-    setAttribute(location, value, transpose);
++    setAttribute(location, glm::mat4x4(value), transpose);
+     return true;
+ }
+ 
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/atmosphere/rendering/atmospheredeferredcaster.cpp modules/atmosphere/rendering/atmospheredeferredcaster.cpp
+--- modules/atmosphere/rendering/atmospheredeferredcaster.cpp	2026-01-10 10:59:48
++++ modules/atmosphere/rendering/atmospheredeferredcaster.cpp	2026-01-10 11:07:56
+@@ -276,7 +276,7 @@
+ float AtmosphereDeferredcaster::eclipseShadow(const glm::dvec3& position) {
+     // This code is copied from the atmosphere deferred fragment shader
+     // It is used to calculate the eclipse shadow
+-    if (_shadowDataArrayCache.empty() || !_shadowDataArrayCache.front().isShadowing) {
++    if (_shadowDataArrayCache.empty() || (!_shadowDataArrayCache.front().isShadowing!=0)) {
+         return 1.f;
+     }
+ 
+@@ -480,13 +480,13 @@
+             );
+ 
+             ShadowRenderingStruct shadow;
+-            shadow.isShadowing = false;
++            shadow.isShadowing = 0;
+ 
+             if (((dTest - rpTest) < (_atmospherePlanetRadius * KM_TO_M)) &&
+                 (casterDistSun < planetDistSun))
+             {
+                 // The current caster is shadowing the current planet
+-                shadow.isShadowing = true;
++                shadow.isShadowing = 1;
+                 shadow.radiusSource = actualSourceRadius;
+                 shadow.radiusCaster = static_cast<float>(actualCasterRadius);
+                 shadow.sourceCasterVec = glm::normalize(sourceCasterVec);
+
+
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/atmosphere/shaders/atmosphere_deferred_fs.glsl modules/atmosphere/shaders/atmosphere_deferred_fs.glsl
+--- modules/atmosphere/shaders/atmosphere_deferred_fs.glsl	2026-01-10 10:59:48
++++ modules/atmosphere/shaders/atmosphere_deferred_fs.glsl	2026-01-10 11:07:56
+@@ -183,7 +183,11 @@
+ vec3 irradiance(sampler2D s, float r, float muSun) {
+   float u_r = (r - Rg) / (Rt - Rg);
+   float u_muSun = (muSun + 0.2) / 1.2;
+-  return texture(s, vec2(u_muSun, u_r)).rgb;
++  
++  // Fix for macOS texture wrapping artifacts
++  vec2 uv = clamp(vec2(u_muSun, u_r), 0.0, 1.0);
++  
++  return texture(s, uv).rgb;
+ }
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////
+@@ -233,7 +237,9 @@
+   }
+ 
+   // If q = 0.0, there is only one intersection
+-  float q = sqrt(r2 - m2);
++  //float q = sqrt(r2 - m2);
++  // Fix for NaN flickering: Clamp input to 0.0
++  float q = sqrt(max(0.0, r2 - m2));
+ 
+   // If l2 < r2, the ray origin is inside the sphere
+   if (l2 > r2) {
+
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/globebrowsing/shaders/localrenderer_vs.glsl modules/globebrowsing/shaders/localrenderer_vs.glsl
+--- modules/globebrowsing/shaders/localrenderer_vs.glsl	2026-01-10 10:59:47
++++ modules/globebrowsing/shaders/localrenderer_vs.glsl	2026-01-10 11:07:55
+@@ -39,10 +39,13 @@
+ out vec3 positionCameraSpace;
+ out vec3 posObjSpace;
+- out vec3 normalObjSpace;
++ out vec3 normalObjSpace;
++ out vec3 ellipsoidTangentThetaCameraSpace;
++ out vec3 ellipsoidTangentPhiCameraSpace;
++ out vec3 positionWorldSpace;
+ 
+ #if USE_ACCURATE_NORMALS
+-  out vec3 ellipsoidTangentThetaCameraSpace;
+-  out vec3 ellipsoidTangentPhiCameraSpace;
++//  out vec3 ellipsoidTangentThetaCameraSpace;
++//  out vec3 ellipsoidTangentPhiCameraSpace;
+ #endif // USE_ACCURATE_NORMALS
+ 
+ uniform mat4 inverseViewTransform;
+@@ -50,14 +53,9 @@
+ 
+ #if USE_ECLIPSE_SHADOWS
+   // Position in world space
+-  out vec3 positionWorldSpace;
++//  out vec3 positionWorldSpace;
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+-#if SHADOW_MAPPING_ENABLED
+-  out vec4 shadowCoords;
+-  uniform mat4 shadowMatrix;
+-#endif // SHADOW_MAPPING_ENABLED
+-
+ uniform mat4 projectionTransform;
+ // Input points in camera space
+ uniform vec3 p00;
+@@ -69,14 +67,7 @@
+ uniform float distanceScaleFactor;
+ uniform int chunkLevel;
+ 
+-#define nDepthMaps #{nDepthMaps}
+-#if nDepthMaps > 0
+-  uniform dmat4 inv_vp;
+-  uniform dmat4 light_vps[nDepthMaps];
+-  out vec4 positions_lightspace[nDepthMaps];
+-#endif // nDepthMaps > 0
+ 
+-
+ vec3 bilinearInterpolation(vec2 uv) {
+   vec3 p0 = mix(p00, p10, uv.x);
+   vec3 p1 = mix(p01, p11, uv.x);
+@@ -115,6 +106,10 @@
+ 
+-   vec4 positionClippingSpace = projectionTransform * vec4(p, 1);
++   vec4 positionClippingSpace = projectionTransform * vec4(p, 1);
++  // Always assign defaults
++  ellipsoidTangentThetaCameraSpace = vec3(0.0, 0.0, 1.0);
++  ellipsoidTangentPhiCameraSpace   = vec3(1.0, 0.0, 0.0);
++    
+ #if USE_ACCURATE_NORMALS
+   // Calculate tangents
+   ellipsoidTangentThetaCameraSpace = normalize(p10 - p00);
+@@ -129,18 +124,9 @@
+   positionCameraSpace = p;
+   posObjSpace = vec3(inverseViewTransform * vec4(p, 1.0));
+ normalObjSpace = normalize(vec3(inverseViewTransform * vec4(patchNormalCameraSpace, 0.0)));
+-
++    //defaults
++    positionWorldSpace = vec3(0.0);
+ #if USE_ECLIPSE_SHADOWS
+   positionWorldSpace = vec3(modelTransform * vec4(p, 1.0));
+ #endif // USE_ECLIPSE_SHADOWS
+-
+-#if SHADOW_MAPPING_ENABLED
+-  shadowCoords = vec4(shadowMatrix * vec4(p, 1.0));
+-#endif // SHADOW_MAPPING_ENABLED
+-
+-#if nDepthMaps > 0
+-  for (int idx = 0; idx < nDepthMaps; idx++) {
+-    positions_lightspace[idx] = vec4(light_vps[idx] * (inv_vp * dvec4(p, 1.0)));
+-  }
+-#endif // nDepthMaps > 0
+ }
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/globebrowsing/shaders/renderer_fs.glsl modules/globebrowsing/shaders/renderer_fs.glsl
+--- modules/globebrowsing/shaders/renderer_fs.glsl	2026-01-10 10:59:47
++++ modules/globebrowsing/shaders/renderer_fs.glsl	2026-01-10 11:07:55
+@@ -1,52 +1,55 @@
+ /*****************************************************************************************
+- *                                                                                       *
+- * OpenSpace                                                                             *
+- *                                                                                       *
+- * Copyright (c) 2014-2026                                                               *
+- *                                                                                       *
+- * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
+- * software and associated documentation files (the "Software"), to deal in the Software *
+- * without restriction, including without limitation the rights to use, copy, modify,    *
+- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
+- * permit persons to whom the Software is furnished to do so, subject to the following   *
+- * conditions:                                                                           *
+- *                                                                                       *
+- * The above copyright notice and this permission notice shall be included in all copies *
+- * or substantial portions of the Software.                                              *
+- *                                                                                       *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
+- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
+- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
+- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF  *
+- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  *
+- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                         *
+- ****************************************************************************************/
++    *                                                                                       *
++    * OpenSpace                                                                             *
++    *                                                                                       *
++    * Copyright (c) 2014-2026                                                               *
++    *                                                                                       *
++    * Permission is hereby granted, free of charge, to any person obtaining a copy of this  *
++    * software and associated documentation files (the "Software"), to deal in the Software *
++    * without restriction, including without limitation the rights to use, copy, modify,    *
++    * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to    *
++    * permit persons to whom the Software is furnished to do so, subject to the following   *
++    * conditions:                                                                           *
++    *                                                                                       *
++    * The above copyright notice and this permission notice shall be included in all copies *
++    * or substantial portions of the Software.                                              *
++    *                                                                                       *
++    * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,   *
++    * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A         *
++    * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT    *
++    * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF  *
++    * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  *
++    * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                                         *
++    ****************************************************************************************/
+ 
+ #include "fragment.glsl"
+-
+ #include <${MODULE_GLOBEBROWSING}/shaders/tile.glsl>
+ #include <${MODULE_GLOBEBROWSING}/shaders/texturetilemapping.glsl>
+ #include <${MODULE_GLOBEBROWSING}/shaders/tileheight.glsl>
+ #include "PowerScaling/powerScaling_fs.hglsl"
+ 
+-// Below are all the tiles that are used for contributing the actual fragment color
+-
++// Definitions moved to texturetilemapping.glsl to fix MacOS linker crash
++/*
+ #if USE_COLORTEXTURE
+ uniform Layer ColorLayers[NUMLAYERS_COLORTEXTURE];
+-#endif // USE_COLORTEXTURE
++#endif
+ 
+ #if USE_NIGHTTEXTURE
+ uniform Layer NightLayers[NUMLAYERS_NIGHTTEXTURE];
+-#endif // USE_NIGHTTEXTURE
++#endif
+ 
+ #if USE_OVERLAY
+ uniform Layer Overlays[NUMLAYERS_OVERLAY];
+-#endif // USE_OVERLAY
++#endif
+ 
+ #if USE_WATERMASK
+ uniform Layer WaterMasks[NUMLAYERS_WATERMASK];
+-#endif // USE_WATERMASK
++#endif
++*/
+ 
++// Below are all the tiles that are used for contributing the actual fragment color
++
++
+ #if SHOW_HEIGHT_RESOLUTION
+ uniform vec2 vertexResolution;
+ #endif // SHOW_HEIGHT_RESOLUTION
+@@ -64,7 +67,7 @@
+ #if SHADOW_MAPPING_ENABLED
+ #if USE_RING_SHADOWS
+ // Fragment position in object space
+-in vec3 posObjSpace;
++//in vec3 posObjSpace; <= in vec is moved outside the if block, lower down.
+ 
+ // Color of the rings
+ uniform sampler1D ringTextureColor;
+@@ -74,8 +77,6 @@
+ #endif // USE_RING_SHADOWS
+ #endif // SHADOW_MAPPING_ENABLED
+ 
+-#define USE_DEPTHMAP_SHADOWS #{useDepthmapShadows}
+-
+ #if USE_ECLIPSE_SHADOWS
+ 
+ #define NSEclipseShadowsMinusOne #{nEclipseShadows}
+
+@@ -168,29 +169,34 @@
+ in vec3 levelWeights;
+ in vec3 positionCameraSpace;
+ in vec3 normalObjSpace;
++// Always declare all VS outputs
++in vec3 posObjSpace;
++in vec3 positionWorldSpace;
++in vec3 ellipsoidTangentThetaCameraSpace;
++in vec3 ellipsoidTangentPhiCameraSpace;
+ 
+ #if USE_ACCURATE_NORMALS
+-  in vec3 ellipsoidTangentThetaCameraSpace;
+-  in vec3 ellipsoidTangentPhiCameraSpace;
++//  in vec3 ellipsoidTangentThetaCameraSpace;
++//  in vec3 ellipsoidTangentPhiCameraSpace;
+ #endif // USE_ACCURATE_NORMALS
+ 
+ #if USE_ECLIPSE_SHADOWS
+-  in vec3 positionWorldSpace;
++//  in vec3 positionWorldSpace;
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ uniform float opacity;
+ 
+-#if USE_DEPTHMAP_SHADOWS
+-#define nDepthMaps #{nDepthMaps}
+-#if nDepthMaps > 0
+-  in vec4 positions_lightspace[nDepthMaps];
+-  uniform sampler2D light_depth_maps[nDepthMaps];
+-#endif // nDepthMaps > 0
+-#endif // USE_DEPTHMAP_SHADOWS
+ 
+-Fragment getFragment() {
++ Fragment getFragment() {
+   Fragment frag;
+@@
+-   frag.color = vec4(0.3, 0.3, 0.3, 1.0);
++   frag.color = vec4(0.3, 0.3, 0.3, 1.0);
++     // Strongly recommended: fully initialize
++     frag.gPosition = vec4(0.0);
++     frag.gNormal = vec4(0.0);
++     frag.depth = 0.0;
++     frag.blend = BLEND_MODE_NORMAL;
++     frag.forceFboRendering = false;
++     frag.disableLDR2HDR = false;
+ 
+   vec3 normal = normalize(ellipsoidNormalCameraSpace);
+ 
+@@ -205,7 +211,9 @@
+ #endif /// USE_ACCURATE_NORMALS
+ 
+ #if USE_COLORTEXTURE
+-  frag.color = calculateColor(frag.color, fs_uv, levelWeights, ColorLayers);
++   frag.color = calculateColor(frag.color, fs_uv, levelWeights);
+ #endif // USE_COLORTEXTURE
+ 
+ #if USE_WATERMASK
+@@ -214,7 +222,6 @@
+     frag.color,
+     fs_uv,
+     levelWeights,
+-    WaterMasks,
+     normal,
+     lightDirectionCameraSpace, // Should already be normalized
+     positionCameraSpace,
+@@ -227,7 +234,6 @@
+     frag.color,
+     fs_uv,
+     levelWeights,
+-    NightLayers,
+     normalize(ellipsoidNormalCameraSpace),
+     lightDirectionCameraSpace // Should already be normalized
+   );
+@@ -246,27 +252,28 @@
+ #endif // PERFORM_SHADING
+ 
+ #if USE_ECLIPSE_SHADOWS
+-  frag.color *= calcShadow(shadowDataArray, vec3(positionWorldSpace), true);
++  frag.color = frag.color * calcShadow(shadowDataArray, vec3(positionWorldSpace), true);
+ #endif // USE_ECLIPSE_SHADOWS
+ 
+ #if USE_OVERLAY
+-  frag.color = calculateOverlay(frag.color, fs_uv, levelWeights, Overlays);
++  frag.color = calculateOverlay(frag.color, fs_uv, levelWeights);
+ #endif // USE_OVERLAY
+ 
+ #if SHOW_HEIGHT_INTENSITIES
+-  frag.color.rgb *= vec3(0.1);
++  frag.color.rgb = frag.color.rgb * vec3(0.1);
+ 
++
+   float untransformedHeight = getUntransformedTileVertexHeight(fs_uv, levelWeights);
+   float contourLine = fract(10.0 * untransformedHeight) > 0.98 ? 1.0 : 0.0;
+-  frag.color.r += untransformedHeight;
++  frag.color.r = frag.color.r + untransformedHeight;
+   frag.color.b = contourLine;
+ #endif // SHOW_HEIGHT_INTENSITIES
+ 
+ #if SHOW_HEIGHT_RESOLUTION
+-  frag.color += 0.0001 * calculateDebugColor(fs_uv, fs_position, vertexResolution);
++  frag.color = frag.color + 0.0001 * calculateDebugColor(fs_uv, fs_position, vertexResolution);
+   #if USE_HEIGHTMAP
+     frag.color.r = min(frag.color.r, 0.8);
+-    frag.color.r += tileResolution(fs_uv, HeightLayers[0].pile.chunkTile0) > 0.9 ? 1 : 0;
++    frag.color.r = frag.color.r + tileResolution(fs_uv, HeightLayers[0].pile.chunkTile0) > 0.9 ? 1 : 0;
+   #endif // USE_HEIGHTMAP
+ #endif // SHOW_HEIGHT_RESOLUTION
+ 
+@@ -297,7 +304,7 @@
+   float thres = 0.5 - BorderSize * 0.5;
+   bool isBorder = abs(uvOffset.x) > thres || abs(uvOffset.y) > thres;
+   if (isBorder) {
+-    frag.color.rgb += BorderColor;
++    frag.color.rgb = frag.color.rgb + BorderColor;
+   }
+ #endif // SHOW_CHUNK_EDGES
+ 
+@@ -325,7 +332,7 @@
+     if (texCoord >= 0.0 && texCoord <= 1.0) {
+       // Sample ring transparency texture
+       float ringOpacity = texture(ringTextureTransparency, texCoord).r;
+-
++      
+       // Increase the shadow darkness factor with low angle to simulate the light having
+       // to pass through more material
+       float angleFactor = clamp(abs(-dot(ringPlaneNormal, surfaceToSun)) / 2.0, 0.0, 0.3);
+@@ -336,44 +343,16 @@
+   }
+ 
+   // Blend the light color passing through the rings with the pre-shaded color
+-  frag.color.rgb = mix(preShadedColor * lightColor * ambientIntensity, frag.color.rgb, shadow);
++  // frag.color.rgb = mix(preShadedColor * lightColor * ambientIntensity, frag.color.rgb, shadow);
++  // on MacOS, replaced with
++     vec3 ringLit = preShadedColor * lightColor;
++     ringLit = ringLit * ambientIntensity;
++     frag.color.rgb = mix(ringLit, frag.color.rgb, shadow);
+ 
++
+ #endif // (SHADOW_MAPPING_ENABLED && PERFORM_SHADING && USE_RING_SHADOWS)
+ 
+
+-  frag.color.a *= opacity;
++  frag.color.a = frag.color.a * opacity;
+   frag.color = clamp(frag.color, 0.0, 1.0);
+   return frag;
+ }
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrowsing/shaders/texturetilemapping.glsl
+--- modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 10:59:47
++++ modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 11:07:55
+@@ -70,6 +70,28 @@
+ // Show shadow from rings onto globe
+- #define USE_RING_SHADOWS #{useRingShadows}
++ #define USE_RING_SHADOWS #{useRingShadows}
++// --- GLOBAL UNIFORMS (Moved here to fix macOS Linker Crash) ---
++#if NUMLAYERS_COLORTEXTURE > 0
++uniform Layer ColorLayers[NUMLAYERS_COLORTEXTURE];
++#endif
++
++#if NUMLAYERS_HEIGHTMAP > 0
++uniform Layer HeightLayers[NUMLAYERS_HEIGHTMAP];
++#endif
++
++#if NUMLAYERS_NIGHTTEXTURE > 0
++uniform Layer NightLayers[NUMLAYERS_NIGHTTEXTURE];
++#endif
++
++#if NUMLAYERS_OVERLAY > 0
++uniform Layer Overlays[NUMLAYERS_OVERLAY];
++#endif
++
++#if NUMLAYERS_WATERMASK > 0
++uniform Layer WaterMasks[NUMLAYERS_WATERMASK];
++#endif
++// -------------------------------------------------------------
++
+ const vec3 DefaultLevelWeights = vec3(1.0, 0.0, 0.0);
+ 
+ float orenNayarDiffuse(vec3 lightDirection, vec3 viewDirection, vec3 surfaceNormal,
+@@ -112,61 +134,63 @@
+   return vec4(v, value.a * settings.opacity);
+ }
+ 
+-vec2 tileUVToTextureSamplePosition(ChunkTile chunkTile, vec2 tileUV)
++// CHANGED: Takes TileUvTransform (safe struct of floats) instead of ChunkTile (unsafe struct with sampler)
++vec2 tileUVToTextureSamplePosition(TileUvTransform transform, vec2 tileUV)
+ {
+-  return chunkTile.uvTransform.uvOffset + chunkTile.uvTransform.uvScale * tileUV;
++  return transform.uvOffset + transform.uvScale * tileUV;
+ }
+ 
+-vec4 getTexVal(ChunkTilePile chunkTilePile, vec3 w, vec2 uv) {
+-  vec4 v1 = texture(
+-    chunkTilePile.chunkTile0.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile0, uv)
+-  );
+-  vec4 v2 = texture(
+-    chunkTilePile.chunkTile1.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile1, uv)
+-  );
+-  vec4 v3 = texture(
+-    chunkTilePile.chunkTile2.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile2, uv)
+-  );
++// CHANGED: Takes explicit samplers and transforms to avoid passing structs containing samplers
++vec4 getTexVal(sampler2D s0, TileUvTransform t0,
++               sampler2D s1, TileUvTransform t1,
++               sampler2D s2, TileUvTransform t2,
++               vec3 w, vec2 uv) {
++  vec4 v1 = texture(s0, tileUVToTextureSamplePosition(t0, uv));
++  vec4 v2 = texture(s1, tileUVToTextureSamplePosition(t1, uv));
++  vec4 v3 = texture(s2, tileUVToTextureSamplePosition(t2, uv));
+-
+-   return w.x * v1 + w.y * v2 + w.z * v3;
+- }
++
++   return w.x * v1 + w.y * v2 + w.z * v3;
++ }
++// Helper macro to unwrap the struct at the call site
++#define SAFE_GET_TEX_VAL(pile, w, uv) getTexVal( \
++    pile.chunkTile0.textureSampler, pile.chunkTile0.uvTransform, \
++    pile.chunkTile1.textureSampler, pile.chunkTile1.uvTransform, \
++    pile.chunkTile2.textureSampler, pile.chunkTile2.uvTransform, \
++    w, uv)
++
+ #for id, layerGroup in layerGroups
+ #for i in 0..#{lastLayerIndex#{layerGroup}}
+ 
+-vec4 getSample#{layerGroup}#{i}(vec2 uv, vec3 levelWeights,
+-                                Layer #{layerGroup}[#{lastLayerIndex#{layerGroup}} + 1])
++vec4 getSample#{layerGroup}#{i}(vec2 uv, vec3 levelWeights)
+ {
+   vec4 c = vec4(0.0, 0.0, 0.0, 1.0);
+ 
+     // All tile layers are the same. Sample from texture
+ #if (#{#{layerGroup}#{i}LayerType} == 0) // DefaultTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 1) // SingleImageProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 2) // ImageSequenceTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 3) // SizeReferenceTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 4) // TemporalTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 5) // TileIndexTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 6) // TileProviderByDate
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 7) // TileProviderByIndex
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 8) // TileProviderByLevel
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 9) // SolidColor
+   c.rgb = #{layerGroup}[#{i}].color;
+ #elif (#{#{layerGroup}#{i}LayerType} == 10) // SpoutImageProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #elif (#{#{layerGroup}#{i}LayerType} == 11) // VideoTileProvider
+-  c = getTexVal(#{layerGroup}[#{i}].pile, levelWeights, uv);
++  c = SAFE_GET_TEX_VAL(#{layerGroup}[#{i}].pile, levelWeights, uv);
+ #endif
+ 
+   return c;
+@@ -239,8 +263,7 @@
+ #endfor
+ #endfor
+ 
+-float calculateUntransformedHeight(vec2 uv, vec3 levelWeights,
+-                                   Layer HeightLayers[NUMLAYERS_HEIGHTMAP])
++float calculateUntransformedHeight(vec2 uv, vec3 levelWeights)
+ {
+ 
+   float height = 0;
+@@ -253,7 +276,7 @@
+ 
+   #for i in 0..#{lastLayerIndexHeightLayers}
+   {
+-    vec4 colorSample = getSampleHeightLayers#{i}(uv, levelWeights, HeightLayers);
++    vec4 colorSample = getSampleHeightLayers#{i}(uv, levelWeights);
+     colorSample = performAdjustmentHeightLayers#{i}(colorSample, HeightLayers[#{i}].adjustment);
+     height = colorSample.r;
+ 
+@@ -263,7 +286,7 @@
+   return height;
+ }
+ 
+-float calculateHeight(vec2 uv, vec3 levelWeights, Layer HeightLayers[NUMLAYERS_HEIGHTMAP])
++float calculateHeight(vec2 uv, vec3 levelWeights)
+ {
+   float height = 0;
+ 
+@@ -275,7 +298,7 @@
+ 
+   #for i in 0..#{lastLayerIndexHeightLayers}
+   {
+-    vec4 colorSample = getSampleHeightLayers#{i}(uv, levelWeights, HeightLayers);
++    vec4 colorSample = getSampleHeightLayers#{i}(uv, levelWeights);
+     colorSample = performAdjustmentHeightLayers#{i}(colorSample, HeightLayers[#{i}].adjustment);
+     float untransformedHeight = colorSample.r;
+ 
+@@ -290,27 +313,50 @@
+   return height;
+ }
+ 
+-vec4 calculateColor(vec4 currentColor, vec2 uv, vec3 levelWeights,
+-                    Layer ColorLayers[NUMLAYERS_COLORTEXTURE])
++vec4 calculateColor(vec4 currentColor, vec2 uv, vec3 levelWeights)
+ {
+   vec4 color = currentColor;
+ 
+-  // The shader compiler will remove unused code when variables are multiplied by
+-  // a constant 0
+ #if !COLORTEXTURE_BLENDING_ENABLED
+   levelWeights = DefaultLevelWeights;
+-#endif // COLORTEXTURE_BLENDING_ENABLED
++#endif
+ 
+@@ -330,14 +376,14 @@
+   return vec4(0.5 * colorSum, 1);
+ }
+ 
+-float tileResolution(vec2 tileUV, ChunkTile chunkTile) {
+-  vec2 heightResolution = textureSize(chunkTile.textureSampler, 0);
+-  vec2 uv = tileUVToTextureSamplePosition(chunkTile, tileUV);
++// CHANGED: Exploded arguments to avoid passing ChunkTile (struct with sampler)
++float tileResolution(vec2 tileUV, sampler2D s, TileUvTransform t) {
++  vec2 heightResolution = textureSize(s, 0);
++  vec2 uv = tileUVToTextureSamplePosition(t, tileUV);
+   return gridDots(uv, heightResolution);
+ }
+ 
+ vec4 calculateNight(vec4 currentColor, vec2 uv, vec3 levelWeights,
+-                    Layer NightLayers[NUMLAYERS_NIGHTTEXTURE],
+                     vec3 ellipsoidNormalCameraSpace, vec3 lightDirectionCameraSpace)
+ {
+   vec4 nightColor = vec4(0.0);
+@@ -355,7 +401,7 @@
+ 
+   #for i in 0..#{lastLayerIndexNightLayers}
+   {
+-    vec4 colorSample = getSampleNightLayers#{i}(uv, levelWeights, NightLayers);
++    vec4 colorSample = getSampleNightLayers#{i}(uv, levelWeights);
+     colorSample = performAdjustmentNightLayers#{i}(colorSample, NightLayers[#{i}].adjustment);
+     colorSample = performLayerSettings(colorSample, NightLayers[#{i}].settings);
+ 
+@@ -392,8 +438,7 @@
+   return color;
+ }
+ 
+-vec4 calculateOverlay(vec4 currentColor, vec2 uv, vec3 levelWeights,
+-                      Layer Overlays[NUMLAYERS_OVERLAY])
++vec4 calculateOverlay(vec4 currentColor, vec2 uv, vec3 levelWeights)
+ {
+   vec4 color = currentColor;
+ 
+@@ -405,7 +450,7 @@
+ 
+   #for i in 0..#{lastLayerIndexOverlays}
+   {
+-    vec4 colorSample = getSampleOverlays#{i}(uv, levelWeights, Overlays);
++    vec4 colorSample = getSampleOverlays#{i}(uv, levelWeights);
+     colorSample = performAdjustmentOverlays#{i}(colorSample, Overlays[#{i}].adjustment);
+ 
+     colorSample = performLayerSettings(colorSample, Overlays[#{i}].settings);
+@@ -419,7 +464,6 @@
+ }
+ 
+ vec4 calculateWater(vec4 currentColor, vec2 uv, vec3 levelWeights,
+-                    Layer WaterMasks[NUMLAYERS_WATERMASK],
+                     vec3 ellipsoidNormalCameraSpace, vec3 lightDirectionCameraSpace,
+                     vec3 positionCameraSpace, out float reflectance)
+ {
+@@ -433,7 +477,7 @@
+ 
+   #for i in 0..#{lastLayerIndexWaterMasks}
+   {
+-    vec4 colorSample = getSampleWaterMasks#{i}(uv, levelWeights, WaterMasks);
++    vec4 colorSample = getSampleWaterMasks#{i}(uv, levelWeights);
+     colorSample = performAdjustmentWaterMasks#{i}(colorSample, WaterMasks[#{i}].adjustment);
+ 
+     colorSample.a = performLayerSettings(colorSample.a, WaterMasks[#{i}].settings);
+@@ -444,15 +488,8 @@
+ 
+   vec3 directionToFragmentCameraSpace = normalize(positionCameraSpace - vec3(0, 0, 0));
+   vec3 reflectionDirectionCameraSpace = reflect(lightDirectionCameraSpace, ellipsoidNormalCameraSpace);
+-  // float cosineFactor = clamp(dot(-reflectionDirectionCameraSpace, directionToFragmentCameraSpace), 0, 1);
+-  // cosineFactor = pow(cosineFactor, 100);
+ 
+-  // const float specularIntensity = 0.4;
+-  // vec3 specularTotal = cosineFactor * specularIntensity * waterColor.a;
+-
+   reflectance = waterColor.a;
+-  //return blendNormal(currentColor, waterColor);
+-  //return currentColor + vec4(specularTotal, 1);
+   return currentColor;
+ }
+ 
+diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modules/globebrowsing/shaders/tileheight.glsl modules/globebrowsing/shaders/tileheight.glsl
+--- modules/globebrowsing/shaders/tileheight.glsl	2026-01-10 10:59:47
++++ modules/globebrowsing/shaders/tileheight.glsl	2026-01-10 11:07:55
+@@ -37,7 +37,7 @@
+ #endif // USE_ACCURATE_NORMALS
+ 
+ #if USE_HEIGHTMAP
+-uniform Layer HeightLayers[NUMLAYERS_HEIGHTMAP];
++// uniform Layer HeightLayers[NUMLAYERS_HEIGHTMAP]; // Moved to texturetilemapping.glsl
+ uniform float heightScale;
+ #endif // USE_HEIGHTMAP
+ 
+@@ -57,7 +57,7 @@
+ #if USE_HEIGHTMAP
+   // Calculate desired level based on distance to the vertex on the ellipsoid before any
+   // heightmapping is done.
+-  height = calculateUntransformedHeight(uv, levelWeights, HeightLayers);
++  height = calculateUntransformedHeight(uv, levelWeights);
+ #endif // USE_HEIGHTMAP
+ 
+     return height;
+@@ -71,7 +71,7 @@
+ #if USE_HEIGHTMAP
+   // Calculate desired level based on distance to the vertex on the ellipsoid before any
+   // heightmapping is done
+-  height = calculateHeight(uv, levelWeights, HeightLayers);
++  height = calculateHeight(uv, levelWeights);
+ #endif // USE_HEIGHTMAP
+ 
+     return height;
+
+
+diff -uN modules/globebrowsing/shaders/texturetilemapping.glsl modules/globebrowsing/shaders/texturetilemapping.glsl
+--- modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 18:20:30
++++ modules/globebrowsing/shaders/texturetilemapping.glsl	2026-01-10 11:07:55
+@@ -70,6 +70,28 @@
+ // Show shadow from rings onto globe
+-#define USE_RING_SHADOWS #{useRingShadows}
++#define USE_RING_SHADOWS #{useRingShadows}
++// --- GLOBAL UNIFORMS (Moved here to fix macOS Linker Crash) ---
++#if NUMLAYERS_COLORTEXTURE > 0
++uniform Layer ColorLayers[NUMLAYERS_COLORTEXTURE];
++#endif
++
++#if NUMLAYERS_HEIGHTMAP > 0
++uniform Layer HeightLayers[NUMLAYERS_HEIGHTMAP];
++#endif
++
++#if NUMLAYERS_NIGHTTEXTURE > 0
++uniform Layer NightLayers[NUMLAYERS_NIGHTTEXTURE];
++#endif
++
++#if NUMLAYERS_OVERLAY > 0
++uniform Layer Overlays[NUMLAYERS_OVERLAY];
++#endif
++
++#if NUMLAYERS_WATERMASK > 0
++uniform Layer WaterMasks[NUMLAYERS_WATERMASK];
++#endif
++// -------------------------------------------------------------
++
+ const vec3 DefaultLevelWeights = vec3(1.0, 0.0, 0.0);
+ 
+ float orenNayarDiffuse(vec3 lightDirection, vec3 viewDirection, vec3 surfaceNormal,
+@@ -118,23 +140,25 @@
+   return transform.uvOffset + transform.uvScale * tileUV;
+ }
+ 
+-vec4 getTexVal(ChunkTilePile chunkTilePile, vec3 w, vec2 uv) {
+-  vec4 v1 = texture(
+-    chunkTilePile.chunkTile0.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile0, uv)
+-  );
+-  vec4 v2 = texture(
+-    chunkTilePile.chunkTile1.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile1, uv)
+-  );
+-  vec4 v3 = texture(
+-    chunkTilePile.chunkTile2.textureSampler,
+-    tileUVToTextureSamplePosition(chunkTilePile.chunkTile2, uv)
+-  );
++// CHANGED: Takes explicit samplers and transforms to avoid passing structs containing samplers
++vec4 getTexVal(sampler2D s0, TileUvTransform t0,
++               sampler2D s1, TileUvTransform t1,
++               sampler2D s2, TileUvTransform t2,
++               vec3 w, vec2 uv) {
++  vec4 v1 = texture(s0, tileUVToTextureSamplePosition(t0, uv));
++  vec4 v2 = texture(s1, tileUVToTextureSamplePosition(t1, uv));
++  vec4 v3 = texture(s2, tileUVToTextureSamplePosition(t2, uv));
+ 
+@@
+-  return w.x * v1 + w.y * v2 + w.z * v3;
+-}
++  return w.x * v1 + w.y * v2 + w.z * v3;
++}
++// Helper macro to unwrap the struct at the call site
++#define SAFE_GET_TEX_VAL(pile, w, uv) getTexVal( \
++    pile.chunkTile0.textureSampler, pile.chunkTile0.uvTransform, \
++    pile.chunkTile1.textureSampler, pile.chunkTile1.uvTransform, \
++    pile.chunkTile2.textureSampler, pile.chunkTile2.uvTransform, \
++    w, uv)
++
+ #for id, layerGroup in layerGroups
+ #for i in 0..#{lastLayerIndex#{layerGroup}}
+ 
+@@ around 325
+-  #for i in 0..#{lastLayerIndexColorLayers}
+-  {
+-    vec4 colorSample = getSampleColorLayers#{i}(uv, levelWeights, ColorLayers);
+-    colorSample = performAdjustmentColorLayers#{i}(colorSample, ColorLayers[#{i}].adjustment);
+-    colorSample = performLayerSettings(colorSample, ColorLayers[#{i}].settings);
+-
+-    color = blendColorLayers#{i}(color, colorSample, 1.0);
+-  }
+-  #endfor
++  #for i in 0..#{lastLayerIndexColorLayers}
++  {
++    vec4 sample#{i} = getSampleColorLayers#{i}(uv, levelWeights);
++    vec4 adjusted#{i} = performAdjustmentColorLayers#{i}(sample#{i}, ColorLayers[#{i}].adjustment);
++    vec4 final#{i} = performLayerSettings(adjusted#{i}, ColorLayers[#{i}].settings);
++    color = blendColorLayers#{i}(color, final#{i}, 1.0);
++  }
++  #endfor
