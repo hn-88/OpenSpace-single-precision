@@ -1238,7 +1238,8 @@ diff -ruN --exclude=build --exclude=bin --exclude=.git --exclude=.DS_Store modul
 @@ -168,29 +169,34 @@
  in vec3 levelWeights;
  in vec3 positionCameraSpace;
- in vec3 normalObjSpace;
+- in vec3 normalObjSpace;
++ in vec3 normalObjSpace;
 +// Always declare all VS outputs
 +in vec3 posObjSpace;
 +in vec3 positionWorldSpace;
