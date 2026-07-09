@@ -1,0 +1,467 @@
+diff --git a/src/opengl/programobject.cpp b/src/opengl/programobject.cpp
+index 2c77536..fd98a86 100644
+--- a/src/opengl/programobject.cpp
++++ b/src/opengl/programobject.cpp
+@@ -1264,77 +1264,114 @@ void ProgramObject::setUniform(GLint location, const std::vector<glm::vec4>& val
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble value) const {
+-    glProgramUniform1d(_id, location, value);
++    // Apple's OpenGL driver does not reliably support double-precision uniforms
++    // (ARB_gpu_shader_fp64) despite advertising OpenGL 4.1, so convert to float and
++    // use the float uniform API instead.
++    glProgramUniform1f(_id, location, static_cast<GLfloat>(value));
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2) const {
+-    glProgramUniform2d(_id, location, v1, v2);
++    glProgramUniform2f(
++        _id, location, static_cast<GLfloat>(v1), static_cast<GLfloat>(v2)
++    );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2,
+                                GLdouble v3) const
+ {
+-    glProgramUniform3d(_id, location, v1, v2, v3);
++    glProgramUniform3f(
++        _id,
++        location,
++        static_cast<GLfloat>(v1),
++        static_cast<GLfloat>(v2),
++        static_cast<GLfloat>(v3)
++    );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, GLdouble v1, GLdouble v2, GLdouble v3,
+                                GLdouble v4) const
+ {
+-    glProgramUniform4d(_id, location, v1, v2, v3, v4);
++    glProgramUniform4f(
++        _id,
++        location,
++        static_cast<GLfloat>(v1),
++        static_cast<GLfloat>(v2),
++        static_cast<GLfloat>(v3),
++        static_cast<GLfloat>(v4)
++    );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec2& value) const {
+-    glProgramUniform2dv(_id, location, 1, glm::value_ptr(value));
++    const glm::vec2 f(value);
++    glProgramUniform2fv(_id, location, 1, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec3& value) const {
+-    glProgramUniform3dv(_id, location, 1, glm::value_ptr(value));
++    const glm::vec3 f(value);
++    glProgramUniform3fv(_id, location, 1, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dvec4& value) const {
+-    glProgramUniform4dv(_id, location, 1, glm::value_ptr(value));
++    const glm::vec4 f(value);
++    glProgramUniform4fv(_id, location, 1, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const std::vector<GLdouble>& values) const
+ {
+-    glProgramUniform1dv(
++    std::vector<GLfloat> f(values.size());
++    for (size_t i = 0; i < values.size(); i++) {
++        f[i] = static_cast<GLfloat>(values[i]);
++    }
++    glProgramUniform1fv(
+         _id,
+         location,
+-        static_cast<GLsizei>(values.size()),
+-        values.data()
++        static_cast<GLsizei>(f.size()),
++        f.data()
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec2>& values) const
+ {
+-    glProgramUniform2dv(
++    std::vector<glm::vec2> f(values.size());
++    for (size_t i = 0; i < values.size(); i++) {
++        f[i] = glm::vec2(values[i]);
++    }
++    glProgramUniform2fv(
+         _id,
+         location,
+-        static_cast<GLsizei>(values.size()),
+-        reinterpret_cast<const double*>(values.data())
++        static_cast<GLsizei>(f.size()),
++        reinterpret_cast<const float*>(f.data())
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec3>& values) const
+ {
+-    glProgramUniform3dv(
++    std::vector<glm::vec3> f(values.size());
++    for (size_t i = 0; i < values.size(); i++) {
++        f[i] = glm::vec3(values[i]);
++    }
++    glProgramUniform3fv(
+         _id,
+         location,
+-        static_cast<GLsizei>(values.size()),
+-        reinterpret_cast<const double*>(values.data())
++        static_cast<GLsizei>(f.size()),
++        reinterpret_cast<const float*>(f.data())
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location,
+                                const std::vector<glm::dvec4>& values) const
+ {
+-    glProgramUniform4dv(
++    std::vector<glm::vec4> f(values.size());
++    for (size_t i = 0; i < values.size(); i++) {
++        f[i] = glm::vec4(values[i]);
++    }
++    glProgramUniform4fv(
+         _id,
+         location,
+-        static_cast<GLsizei>(values.size()),
+-        reinterpret_cast<const double*>(values.data())
++        static_cast<GLsizei>(f.size()),
++        reinterpret_cast<const float*>(f.data())
+     );
+ }
+ 
+@@ -1450,108 +1487,120 @@ void ProgramObject::setUniform(GLint location, const glm::mat4x4& value,
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x2& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix2dv(
++    // Apple's OpenGL driver does not reliably support double-precision uniforms
++    // (ARB_gpu_shader_fp64) despite advertising OpenGL 4.1, so convert to a
++    // single-precision matrix and use the float uniform API instead.
++    const glm::mat2x2 f(value);
++    glProgramUniformMatrix2fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x3& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix2x3dv(
++    const glm::mat2x3 f(value);
++    glProgramUniformMatrix2x3fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat2x4& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix2x4dv(
++    const glm::mat2x4 f(value);
++    glProgramUniformMatrix2x4fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x2& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix3x2dv(
++    const glm::mat3x2 f(value);
++    glProgramUniformMatrix3x2fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x3& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix3dv(
++    const glm::mat3x3 f(value);
++    glProgramUniformMatrix3fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat3x4& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix3x4dv(
++    const glm::mat3x4 f(value);
++    glProgramUniformMatrix3x4fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x2& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix4x2dv(
++    const glm::mat4x2 f(value);
++    glProgramUniformMatrix4x2fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x3& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix4x3dv(
++    const glm::mat4x3 f(value);
++    glProgramUniformMatrix4x3fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+ void ProgramObject::setUniform(GLint location, const glm::dmat4x4& value,
+                                Transpose transpose) const
+ {
+-    glProgramUniformMatrix4dv(
++    const glm::mat4x4 f(value);
++    glProgramUniformMatrix4fv(
+         _id,
+         location,
+         1,
+         transpose ? GL_TRUE : GL_FALSE,
+-        value_ptr(value)
++        value_ptr(f)
+     );
+ }
+ 
+@@ -2175,41 +2224,58 @@ void ProgramObject::setAttribute(GLuint location, const glm::vec4& value) const
+ 
+ void ProgramObject::setAttribute(GLuint location, GLdouble value) const {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL1d(location, value);
++    // Apple's OpenGL driver does not reliably support double-precision vertex
++    // attributes (ARB_vertex_attrib_64bit) despite advertising OpenGL 4.1, so convert
++    // to float and use the float vertex attribute API instead.
++    glVertexAttrib1f(location, static_cast<GLfloat>(value));
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, GLdouble v1, GLdouble v2) const {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL2d(location, v1, v2);
++    glVertexAttrib2f(location, static_cast<GLfloat>(v1), static_cast<GLfloat>(v2));
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, GLdouble v1, GLdouble v2,
+                                  GLdouble v3) const
+ {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL3d(location, v1, v2, v3);
++    glVertexAttrib3f(
++        location,
++        static_cast<GLfloat>(v1),
++        static_cast<GLfloat>(v2),
++        static_cast<GLfloat>(v3)
++    );
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, GLdouble v1, GLdouble v2, GLdouble v3,
+                                  GLdouble v4) const
+ {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL4d(location, v1, v2, v3, v4);
++    glVertexAttrib4f(
++        location,
++        static_cast<GLfloat>(v1),
++        static_cast<GLfloat>(v2),
++        static_cast<GLfloat>(v3),
++        static_cast<GLfloat>(v4)
++    );
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, const glm::dvec2& value) const {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL2dv(location, glm::value_ptr(value));
++    const glm::vec2 f(value);
++    glVertexAttrib2fv(location, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, const glm::dvec3& value) const {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL3dv(location, glm::value_ptr(value));
++    const glm::vec3 f(value);
++    glVertexAttrib3fv(location, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, const glm::dvec4& value) const {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
+-    glVertexAttribL4dv(location, glm::value_ptr(value));
++    const glm::vec4 f(value);
++    glVertexAttrib4fv(location, glm::value_ptr(f));
+ }
+ 
+ void ProgramObject::setAttribute(GLuint location, const glm::mat2x2& value,
+@@ -2342,12 +2408,15 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat2x2& value,
+                                  Transpose transpose) const
+ {
+     ghoul_assert(location != GL_INVALID_INDEX, "Location must not be GL_INVALID_INDEX");
++    // Apple's OpenGL driver does not reliably support double-precision vertex
++    // attributes (ARB_vertex_attrib_64bit) despite advertising OpenGL 4.1, so convert
++    // each column to float and use the float vertex attribute API instead.
+     if (transpose) {
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL2dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL2dv(location + 1, glm::value_ptr(value[1]));
++        glVertexAttrib2fv(location, glm::value_ptr(glm::vec2(value[0])));
++        glVertexAttrib2fv(location + 1, glm::value_ptr(glm::vec2(value[1])));
+     }
+ }
+ 
+@@ -2359,8 +2428,8 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat2x3& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL3dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL3dv(location + 1, glm::value_ptr(value[1]));
++        glVertexAttrib3fv(location, glm::value_ptr(glm::vec3(value[0])));
++        glVertexAttrib3fv(location + 1, glm::value_ptr(glm::vec3(value[1])));
+     }
+ }
+ 
+@@ -2372,8 +2441,8 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat2x4& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL4dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL4dv(location + 1, glm::value_ptr(value[1]));
++        glVertexAttrib4fv(location, glm::value_ptr(glm::vec4(value[0])));
++        glVertexAttrib4fv(location + 1, glm::value_ptr(glm::vec4(value[1])));
+     }
+ }
+ 
+@@ -2385,9 +2454,9 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat3x2& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL2dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL2dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL2dv(location + 2, glm::value_ptr(value[2]));
++        glVertexAttrib2fv(location, glm::value_ptr(glm::vec2(value[0])));
++        glVertexAttrib2fv(location + 1, glm::value_ptr(glm::vec2(value[1])));
++        glVertexAttrib2fv(location + 2, glm::value_ptr(glm::vec2(value[2])));
+     }
+ }
+ 
+@@ -2399,9 +2468,9 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat3x3& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL3dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL3dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL3dv(location + 2, glm::value_ptr(value[2]));
++        glVertexAttrib3fv(location, glm::value_ptr(glm::vec3(value[0])));
++        glVertexAttrib3fv(location + 1, glm::value_ptr(glm::vec3(value[1])));
++        glVertexAttrib3fv(location + 2, glm::value_ptr(glm::vec3(value[2])));
+     }
+ }
+ 
+@@ -2413,9 +2482,9 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat3x4& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL4dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL4dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL4dv(location + 2, glm::value_ptr(value[2]));
++        glVertexAttrib4fv(location, glm::value_ptr(glm::vec4(value[0])));
++        glVertexAttrib4fv(location + 1, glm::value_ptr(glm::vec4(value[1])));
++        glVertexAttrib4fv(location + 2, glm::value_ptr(glm::vec4(value[2])));
+     }
+ }
+ 
+@@ -2427,10 +2496,10 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat4x2& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL2dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL2dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL2dv(location + 2, glm::value_ptr(value[2]));
+-        glVertexAttribL2dv(location + 3, glm::value_ptr(value[3]));
++        glVertexAttrib2fv(location, glm::value_ptr(glm::vec2(value[0])));
++        glVertexAttrib2fv(location + 1, glm::value_ptr(glm::vec2(value[1])));
++        glVertexAttrib2fv(location + 2, glm::value_ptr(glm::vec2(value[2])));
++        glVertexAttrib2fv(location + 3, glm::value_ptr(glm::vec2(value[3])));
+     }
+ }
+ 
+@@ -2442,10 +2511,10 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat4x3& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL3dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL3dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL3dv(location + 2, glm::value_ptr(value[2]));
+-        glVertexAttribL3dv(location + 3, glm::value_ptr(value[3]));
++        glVertexAttrib3fv(location, glm::value_ptr(glm::vec3(value[0])));
++        glVertexAttrib3fv(location + 1, glm::value_ptr(glm::vec3(value[1])));
++        glVertexAttrib3fv(location + 2, glm::value_ptr(glm::vec3(value[2])));
++        glVertexAttrib3fv(location + 3, glm::value_ptr(glm::vec3(value[3])));
+     }
+ }
+ 
+@@ -2457,10 +2526,10 @@ void ProgramObject::setAttribute(GLuint location, const glm::dmat4x4& value,
+         setAttribute(location, glm::transpose(value));
+     }
+     else {
+-        glVertexAttribL4dv(location, glm::value_ptr(value[0]));
+-        glVertexAttribL4dv(location + 1, glm::value_ptr(value[1]));
+-        glVertexAttribL4dv(location + 2, glm::value_ptr(value[2]));
+-        glVertexAttribL4dv(location + 3, glm::value_ptr(value[3]));
++        glVertexAttrib4fv(location, glm::value_ptr(glm::vec4(value[0])));
++        glVertexAttrib4fv(location + 1, glm::value_ptr(glm::vec4(value[1])));
++        glVertexAttrib4fv(location + 2, glm::value_ptr(glm::vec4(value[2])));
++        glVertexAttrib4fv(location + 3, glm::value_ptr(glm::vec4(value[3])));
+     }
+ }
+ 
